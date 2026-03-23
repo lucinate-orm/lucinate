@@ -83,6 +83,8 @@
     "build",
     "scripts",
     "stubs",
-    "README.md"
+    "README.md",
+    "LICENSE",
+    "NOTICE"
   ]
 }

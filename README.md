@@ -1,6 +1,8 @@
 # lucinate
 
-A **framework-agnostic** data layer inspired by [Adonis Lucid](https://github.com/adonisjs/lucid): models, query builder, migrations, schema builder, and seeders — for any **Node** or **Bun** app without IoC, `HttpContext`, or `node ace`.
+A **framework-agnostic** data layer derived from ideas and code ported from [Adonis Lucid](https://github.com/adonisjs/lucid): models, query builder, migrations, schema builder, and seeders — for any **Node** or **Bun** app without IoC, `HttpContext`, or `node ace`.
+
+**Not affiliated with** the AdonisJS team or Harminder Virk; this is an independent project. See [NOTICE](NOTICE) for upstream licensing and [LICENSE](LICENSE) for this package.
 
 ```bash
 npm install lucinate
@@ -156,4 +158,8 @@ Package scripts: `migrate`, `seed`, `generate`, `cli:example` (under `examples/c
 
 ## License
 
-MIT — derived from the original Lucid project; see Lucid/Adonis licensing where applicable.
+**lucinate** is released under the [MIT License](LICENSE).
+
+Portions are derived from [@adonisjs/lucid](https://github.com/adonisjs/lucid); the upstream MIT text and copyright notice are reproduced in [NOTICE](NOTICE). Keep that file when redistributing.
+
+For high-stakes commercial or compliance-sensitive use, consult your own legal counsel; this README is not legal advice.
