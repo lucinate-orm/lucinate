@@ -1,0 +1,8 @@
+import { BaseModel, column } from '{{importFrom}}'
+
+export default class {{className}} extends BaseModel {
+  static table = '{{tableName}}'
+
+  @column({ isPrimary: true })
+  declare id: number
+}

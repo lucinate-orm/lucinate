@@ -1,0 +1,54 @@
+/*
+ * lucinate
+ *
+ * (c) Harminder Virk
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+import { type LucidModel, type LucidRow } from '../../types/model.js'
+import { type BelongsToRelationContract } from '../../types/relations.js'
+import {
+  type RelationCallback,
+  type FactoryModelContract,
+  type FactoryRelationContract,
+  type FactoryBuilderQueryContract,
+} from '../../types/factory.js'
+
+import { BaseRelation } from './base.js'
+
+/**
+ * A belongs to factory relation
+ */
+export class BelongsTo extends BaseRelation implements FactoryRelationContract {
+  constructor(
+    public relation: BelongsToRelationContract<LucidModel, LucidModel>,
+    factory: () => FactoryBuilderQueryContract<LucidModel, FactoryModelContract<LucidModel>>
+  ) {
+    super(factory)
+    this.relation.boot()
+  }
+
+  /**
+   * Make relationship and set it on the parent model instance
+   */
+  async make(parent: LucidRow, callback?: RelationCallback) {
+    const factory = this.compile(this, parent, callback)
+    const related = await factory.makeStubbed()
+
+    this.relation.hydrateForPersistance(parent, related)
+    parent.$setRelated(this.relation.relationName, related)
+  }
+
+  /**
+   * Persist relationship and set it on the parent model instance
+   */
+  async create(parent: LucidRow, callback?: RelationCallback) {
+    const factory = this.compile(this, parent, callback)
+    const related = await factory.create()
+
+    this.relation.hydrateForPersistance(parent, related)
+    parent.$setRelated(this.relation.relationName, related)
+  }
+}

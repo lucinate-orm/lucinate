@@ -1,0 +1,59 @@
+/*
+ * lucinate
+ *
+ * (c) Harminder Virk
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+import type { FileNode } from './database.js'
+
+/**
+ * Options accepted by migrator constructor
+ */
+export type MigratorOptions =
+  | {
+      direction: 'up'
+      connectionName?: string
+      schemaPath?: string
+      dryRun?: boolean
+      disableLocks?: boolean
+    }
+  | {
+      direction: 'down'
+      batch?: number
+      step?: number
+      connectionName?: string
+      dryRun?: boolean
+      disableLocks?: boolean
+    }
+
+/**
+ * Shape of migrated file within migrator
+ */
+export type MigratedFileNode = {
+  status: 'completed' | 'error' | 'pending'
+  queries: string[]
+  file: FileNode<unknown>
+  batch: number
+}
+
+/**
+ * Shape of migrated file within migrator
+ */
+export type MigrationListNode = {
+  name: string
+  status: 'pending' | 'migrated' | 'corrupt' | 'squashed'
+  batch?: number
+  migrationTime?: Date
+}
+
+/**
+ * Options accepted by the SchemaDumper constructor
+ */
+export type SchemaDumperOptions = {
+  connectionName?: string
+  outputPath?: string
+  prune?: boolean
+}

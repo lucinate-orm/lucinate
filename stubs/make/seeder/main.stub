@@ -1,0 +1,6 @@
+import { BaseSeeder } from '{{importFrom}}'
+
+export default class extends BaseSeeder {
+  async run() {
+  }
+}

@@ -1,0 +1,14 @@
+import { BaseSchema } from '{{importFrom}}'
+
+export default class extends BaseSchema {
+  override async up() {
+    this.schema.createTable('{{tableName}}', (table: any) => {
+      table.increments('id').primary()
+      table.timestamps(true, true)
+    })
+  }
+
+  override async down() {
+    this.schema.dropTable('{{tableName}}')
+  }
+}
