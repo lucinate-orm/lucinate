@@ -80,6 +80,13 @@ const DATE_TIME_TYPES = {
   datetime: 'datetime',
 }
 
+/**
+ * Strategy global (Adonis-style: `BaseModel.namingStrategy = …`).
+ * Subclasses sem `static namingStrategy` próprio leem este valor; uma cópia estática herdada
+ * deixaria de seguir mutações no `BaseModel` — por isso usamos getter/setter + esta variável.
+ */
+let globalNamingStrategy: NamingStrategyContract = new CamelCaseNamingStrategy()
+
 function StaticImplements<T>() {
   return (_t: T) => {}
 }
@@ -106,9 +113,36 @@ class BaseModelImpl implements LucidRow {
   }
 
   /**
-   * Naming strategy for model properties
+   * Naming strategy for model properties.
+   * Assignment to `BaseModel.namingStrategy` updates the default for all models without an own `static namingStrategy`.
    */
-  static namingStrategy: NamingStrategyContract = new CamelCaseNamingStrategy()
+  static get namingStrategy(): NamingStrategyContract {
+    const Model = this as unknown as typeof BaseModelImpl
+    if (Model === BaseModelImpl) {
+      return globalNamingStrategy
+    }
+    if (Object.prototype.hasOwnProperty.call(Model, 'namingStrategy')) {
+      const d = Object.getOwnPropertyDescriptor(Model, 'namingStrategy')
+      if (d && 'value' in d && d.value !== undefined) {
+        return d.value as NamingStrategyContract
+      }
+    }
+    return globalNamingStrategy
+  }
+
+  static set namingStrategy(strategy: NamingStrategyContract) {
+    const Model = this as unknown as typeof BaseModelImpl
+    if (Model === BaseModelImpl) {
+      globalNamingStrategy = strategy
+      return
+    }
+    Object.defineProperty(Model, 'namingStrategy', {
+      value: strategy,
+      configurable: true,
+      writable: true,
+      enumerable: true,
+    })
+  }
 
   /**
    * Primary key is required to build relationships across models

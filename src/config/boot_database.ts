@@ -27,10 +27,7 @@ export type BootDatabaseOptions = {
   emitter?: Emitter
   /** Close the previous instance and create another (useful in tests). */
   force?: boolean
-  /**
-   * Sets `BaseModel.namingStrategy` (same as assigning manually in Adonis/Lucid).
-   * `null` resets to `CamelCaseNamingStrategy`. Omit to leave unchanged.
-   */
+  /** Same as `BaseModel.namingStrategy = …` (after boot, models may already have booted — prefer setting global naming before importing models). */
   namingStrategy?: NamingStrategyContract | null
 }
 
@@ -67,7 +64,6 @@ function resolveConfigFilePath(appRoot: string, options?: BootDatabaseOptions): 
   return join(appRoot, 'build', 'config', 'database.js')
 }
 
-/** Same as `BaseModel.namingStrategy = strategy ?? new CamelCaseNamingStrategy()` (Adonis-style). */
 function applyBaseModelNamingStrategy(strategy: NamingStrategyContract | null): void {
   BaseModel.namingStrategy = strategy ?? new CamelCaseNamingStrategy()
 }
@@ -108,18 +104,19 @@ export async function bootDatabase(options?: BootDatabaseOptions): Promise<Datab
   if (bootInFlight) {
     await bootInFlight
   }
+
+  if (options?.namingStrategy !== undefined) {
+    applyBaseModelNamingStrategy(options.namingStrategy)
+  }
+
   if (!options?.force && singleton) {
     setDefaultModelAdapter(singleton.modelAdapter())
-    if (options?.namingStrategy !== undefined) {
-      applyBaseModelNamingStrategy(options.namingStrategy)
-    }
     return singleton
   }
 
   if (options?.force && singleton) {
     await singleton.manager.closeAll()
     setDefaultModelAdapter(null)
-    applyBaseModelNamingStrategy(null)
     singleton = null
   }
 
@@ -127,9 +124,6 @@ export async function bootDatabase(options?: BootDatabaseOptions): Promise<Datab
     .then((db) => {
       singleton = db
       setDefaultModelAdapter(db.modelAdapter())
-      if (options?.namingStrategy !== undefined) {
-        applyBaseModelNamingStrategy(options.namingStrategy)
-      }
       return db
     })
     .finally(() => {
