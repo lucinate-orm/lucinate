@@ -38,10 +38,10 @@
     "node": ">=20.0.0"
   },
   "scripts": {
-    "prepare": "node scripts/prepare.mjs",
     "build": "tsc && node scripts/copy-assets.mjs",
     "typecheck": "tsc --noEmit",
-    "test": "npm run build && node --test test/boot_database.test.mjs && tsx --test test/extras_proxy.test.ts",
+    "test:run": "node --test test/boot_database.test.mjs && tsx --test test/extras_proxy.test.ts",
+    "test": "npm run build && npm run test:run",
     "demo": "node --enable-source-maps build/examples/quick-query.js",
     "migrate": "node scripts/migrate.mjs --app-root examples/cli",
     "migrate:down": "node scripts/migrate.mjs --app-root examples/cli --down",

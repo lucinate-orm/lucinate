@@ -1,4 +1,5 @@
 node_modules/
+# Generated on GitHub Actions only; do not commit locally (CI uses: git add -f build)
 build/
 examples/cli/demo.sqlite
 docs

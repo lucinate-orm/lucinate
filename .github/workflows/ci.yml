@@ -1,37 +1,54 @@
 name: CI
 
+# Developers commit source only; build/ is gitignored locally. On push to main, CI compiles,
+# then commits build/ with `git add -f` (ignored paths) and pushes. Pushes that only change
+# build/ are skipped so the bot commit does not retrigger the workflow.
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - 'build/**'
   pull_request:
     branches: [main]
   workflow_dispatch:
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        node-version: [20.x, 22.x]
+permissions:
+  contents: write
 
+jobs:
+  ci:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: '22.x'
           cache: npm
           cache-dependency-path: package-lock.json
 
       - name: Install dependencies
-        env:
-          LUCINATE_SKIP_PREPARE: '1'
         run: npm ci
 
       - name: Build
         run: npm run build
 
       - name: Test
-        run: npm test
+        run: npm run test:run
+
+      - name: Commit build output on main
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # build/ is in .gitignore; -f stages the compiled output anyway
+          git add -f build
+          if git diff --staged --quiet; then
+            echo "No changes under build/"
+          else
+            git commit -m "chore: sync build output"
+            git push
+          fi
