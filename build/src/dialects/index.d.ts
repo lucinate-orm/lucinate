@@ -1,0 +1,8 @@
+import { type DialectContract, type SharedConfigNode, type QueryClientContract, type ConnectionContract } from '../types/database.js';
+export declare const clientsToDialectsMapping: {
+    [K in ConnectionContract['clientName']]: {
+        new (client: QueryClientContract, config: SharedConfigNode): DialectContract;
+    };
+};
+export declare const clientsNames: ConnectionContract["clientName"][];
+//# sourceMappingURL=index.d.ts.map
