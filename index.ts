@@ -34,3 +34,4 @@ export type {
   HasOne,
   ManyToMany,
 } from './src/types/relations.js'
+export type { LucidRow as ModelRow } from './src/types/model.js'
