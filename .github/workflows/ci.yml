@@ -1,13 +1,10 @@
 name: CI
 
-# Developers commit source only; build/ is gitignored locally. On push to main, CI compiles,
-# then commits build/ with `git add -f` (ignored paths) and pushes. Pushes that only change
-# build/ are skipped so the bot commit does not retrigger the workflow.
+# main: source only (build/ gitignored). On push to main, job `release` resets branch `release`
+# to match main, compiles, commits build/, and pushes — consumers can target `release` for a ready build.
 on:
   push:
     branches: [main]
-    paths-ignore:
-      - 'build/**'
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -16,10 +13,9 @@ permissions:
   contents: write
 
 jobs:
-  ci:
+  verify:
     runs-on: ubuntu-latest
     steps:
-      # v6+ use the Node.js 24 runtime (avoids Node 20 deprecation on composite actions)
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
@@ -40,16 +36,40 @@ jobs:
       - name: Test
         run: npm run test:run
 
-      - name: Commit build output on main
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+  release:
+    needs: verify
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Use Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24.x'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Sync release branch with main and publish build
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          # build/ is in .gitignore; -f stages the compiled output anyway
+          git fetch origin main
+          git checkout -B release origin/main
+          npm ci
+          npm run build
+          npm run test:run
           git add -f build
           if git diff --staged --quiet; then
             echo "No changes under build/"
           else
             git commit -m "chore: sync build output"
-            git push
+          fi
+          git fetch origin
+          if git show-ref --verify --quiet refs/remotes/origin/release; then
+            git push origin release --force-with-lease
+          else
+            git push -u origin release
           fi
