@@ -38,6 +38,7 @@
     "node": ">=20.0.0"
   },
   "scripts": {
+    "prepare": "node scripts/prepare.mjs",
     "build": "tsc && node scripts/copy-assets.mjs",
     "typecheck": "tsc --noEmit",
     "test": "npm run build && node --test test/boot_database.test.mjs && tsx --test test/extras_proxy.test.ts",
