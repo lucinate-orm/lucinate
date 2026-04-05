@@ -1,1 +1,0 @@
-{"version":3,"file":"better_sqlite.d.ts","sourceRoot":"","sources":["../../../src/dialects/better_sqlite.ts"],"names":[],"mappings":"AASA,OAAO,EAAE,KAAK,eAAe,EAAE,MAAM,sBAAsB,CAAA;AAC3D,OAAO,EAAE,iBAAiB,EAAE,MAAM,kBAAkB,CAAA;AAEpD,qBAAa,mBAAoB,SAAQ,iBAAkB,YAAW,eAAe;IACnF,QAAQ,CAAC,IAAI,oBAAmB;CACjC"}

@@ -1,1 +1,0 @@
-{"version":3,"file":"default_model_adapter.js","sourceRoot":"","sources":["../../../src/orm/default_model_adapter.ts"],"names":[],"mappings":"AAMA,IAAI,eAAe,GAA2B,IAAI,CAAA;AAElD,MAAM,UAAU,sBAAsB,CAAC,OAA+B;IACpE,eAAe,GAAG,OAAO,CAAA;AAC3B,CAAC;AAED,MAAM,UAAU,sBAAsB;IACpC,OAAO,eAAe,CAAA;AACxB,CAAC"}

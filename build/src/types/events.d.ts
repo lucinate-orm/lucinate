@@ -1,5 +1,0 @@
-import { type DbQueryEventNode } from './database.js';
-export interface EventsList {
-    'db:query': DbQueryEventNode;
-}
-//# sourceMappingURL=events.d.ts.map
