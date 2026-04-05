@@ -62,7 +62,7 @@ export class DbCheck extends BaseCheck {
       return Result.ok('Successfully connected to the database server').mergeMetaData(
         this.#getConnectionMetadata()
       )
-    } catch (error) {
+    } catch (error: any) {
       return Result.failed(
         error instanceof Error ? error.message : 'Connection failed',
         error

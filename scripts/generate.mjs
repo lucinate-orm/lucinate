@@ -7,11 +7,12 @@
  *   node scripts/generate.mjs model <Nome> [--table users]
  *   node scripts/generate.mjs seeder <nome>
  *
- * Opções: --app-root, --dir, --import-from lucinate
+ * Opções: --app-root, --dir, --import-from lucinate, --contents-from
  */
 import { parseArgs } from 'node:util'
 import { existsSync } from 'node:fs'
-import { join } from 'node:path'
+import { readFile } from 'node:fs/promises'
+import { join, resolve, isAbsolute } from 'node:path'
 import { getPackageRoot } from './lib/resolve-pkg.mjs'
 import { compileDbArtifactsIfNeeded } from './lib/compile-db-artifacts.mjs'
 import { renderStubFile } from './lib/stub-render.mjs'
@@ -40,6 +41,8 @@ const { values, positionals } = parseArgs({
     'app-root': { type: 'string' },
     dir: { type: 'string' },
     'import-from': { type: 'string', default: 'lucinate' },
+    /** Usa o conteúdo deste ficheiro em vez do stub (migration, model, seeder). */
+    'contents-from': { type: 'string' },
     create: { type: 'boolean', default: false },
     alter: { type: 'boolean', default: false },
     table: { type: 'string' },
@@ -61,11 +64,12 @@ lucinate generate
   node scripts/generate.mjs model <NomeModelo> [--table nome_tabela] [--dir path]
   node scripts/generate.mjs seeder <nome> [--dir path]
 
-  --app-root     raiz da app (default: cwd ou APP_ROOT)
-  --dir          pasta de destino (sobrepõe paths da config)
-  --import-from  pacote a importar (default: lucinate)
-  -m, --with-model   (só migration) gera também o model
-  -s, --with-seeder  (só migration) gera também o seeder
+  --app-root        raiz da app (default: cwd ou APP_ROOT)
+  --dir             pasta de destino (sobrepõe paths da config)
+  --import-from     pacote a importar (default: lucinate)
+  --contents-from   caminho do ficheiro cujo conteúdo substitui o stub gerado
+  -m, --with-model  (só migration) gera também o model
+  -s, --with-seeder (só migration) gera também o seeder
 
   Não sobrescreve: se o ficheiro de destino já existir, ignora e mostra [skip].
 
@@ -94,6 +98,22 @@ if (existsSync(configPath)) {
 }
 
 const connectionName = config?.connection ?? 'default'
+
+/**
+ * @param {string} stubPath
+ * @param {Record<string, string>} stubVars
+ */
+async function bodyFromStubOrFile(stubPath, stubVars) {
+  const cf = values['contents-from']
+  if (!cf) {
+    return renderStubFile(stubPath, stubVars)
+  }
+  const abs = isAbsolute(cf) ? cf : resolve(appRoot, cf)
+  if (!existsSync(abs)) {
+    throw new Error(`--contents-from: ficheiro não encontrado: ${abs}`)
+  }
+  return readFile(abs, 'utf-8')
+}
 
 async function cmdMigration() {
   const snakeInput = toSnakeCase(rawName)
@@ -135,7 +155,7 @@ async function cmdMigration() {
   const fileName = `${Date.now()}_${action}_${tableName}_table.ts`
   const outPath = join(outDir, fileName)
 
-  const body = await renderStubFile(stubPath, {
+  const body = await bodyFromStubOrFile(stubPath, {
     importFrom,
     tableName,
   })
@@ -146,6 +166,9 @@ async function cmdMigration() {
   } else {
     console.log(`[skip] já existe: ${outPath}`)
   }
+
+  /** Evita que `-m`/`-s` reutilizem o mesmo `--contents-from` da migration. */
+  values['contents-from'] = undefined
 
   if (values['with-model']) {
     const className = tableNameToModelClassName(tableName)
@@ -172,7 +195,7 @@ async function cmdModel(opts = {}) {
   const file = modelFileName(className)
   const outPath = join(outDir, file)
 
-  const body = await renderStubFile(stubPath, {
+  const body = await bodyFromStubOrFile(stubPath, {
     importFrom,
     className,
     tableName,
@@ -203,7 +226,7 @@ async function cmdSeeder(opts = {}) {
   const file = seederFileName(nameForSeeder)
   const outPath = join(outDir, file)
 
-  const body = await renderStubFile(stubPath, {
+  const body = await bodyFromStubOrFile(stubPath, {
     importFrom,
   })
 

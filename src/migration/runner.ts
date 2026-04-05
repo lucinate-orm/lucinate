@@ -397,7 +397,7 @@ export class MigrationRunner extends EventEmitter {
         version: 2,
       })
       await this.commit(client)
-    } catch (error) {
+    } catch (error: any) {
       await this.rollback(client)
       throw error
     }
@@ -439,7 +439,7 @@ export class MigrationRunner extends EventEmitter {
         version: 3,
       })
       await this.commit(client)
-    } catch (error) {
+    } catch (error: any) {
       await this.rollback(client)
       throw error
     }

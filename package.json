@@ -1,6 +1,9 @@
 {
   "name": "lucinate",
   "version": "0.1.0",
+  "lucinate": {
+    "upstreamLucidVersion": "22.4.2"
+  },
   "description": "SQL database layer (Lucid-inspired, framework-agnostic). Work in progress.",
   "type": "module",
   "main": "./build/index.js",
@@ -46,7 +49,7 @@
     "generate": "node scripts/generate.mjs"
   },
   "dependencies": {
-    "@faker-js/faker": "^10.3.0",
+    "@faker-js/faker": "^10.4.0",
     "@poppinss/hooks": "^7.3.0",
     "@poppinss/macroable": "^1.1.1",
     "@poppinss/qs": "^6.15.0",
@@ -55,8 +58,8 @@
     "fast-deep-equal": "^3.1.3",
     "igniculus": "^1.5.0",
     "kleur": "^4.1.5",
-    "knex": "^3.1.0",
-    "knex-dynamic-connection": "^4.0.0-next.0",
+    "knex": "^3.2.8",
+    "knex-dynamic-connection": "^5.0.1",
     "luxon": "^3.7.2",
     "pretty-hrtime": "^1.0.3",
     "slash": "^5.1.0",
