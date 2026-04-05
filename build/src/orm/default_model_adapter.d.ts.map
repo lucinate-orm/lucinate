@@ -1,0 +1,1 @@
+{"version":3,"file":"default_model_adapter.d.ts","sourceRoot":"","sources":["../../../src/orm/default_model_adapter.ts"],"names":[],"mappings":"AAIA,OAAO,KAAK,EAAE,eAAe,EAAE,MAAM,mBAAmB,CAAA;AAIxD,wBAAgB,sBAAsB,CAAC,OAAO,EAAE,eAAe,GAAG,IAAI,GAAG,IAAI,CAE5E;AAED,wBAAgB,sBAAsB,IAAI,eAAe,GAAG,IAAI,CAE/D"}

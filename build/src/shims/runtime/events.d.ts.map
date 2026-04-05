@@ -1,0 +1,1 @@
+{"version":3,"file":"events.d.ts","sourceRoot":"","sources":["../../../../src/shims/runtime/events.ts"],"names":[],"mappings":"AAAA;;GAEG;AACH,OAAO,KAAK,EAAE,YAAY,EAAE,MAAM,aAAa,CAAA;AAE/C,MAAM,MAAM,OAAO,CAAC,CAAC,SAAS,MAAM,CAAC,MAAM,GAAG,MAAM,EAAE,OAAO,CAAC,GAAG,MAAM,CAAC,MAAM,EAAE,OAAO,CAAC,IACtF,YAAY,CAAA"}

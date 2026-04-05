@@ -1,0 +1,9 @@
+import { type FactoryContextContract } from '../types/factory.js';
+import { type TransactionClientContract } from '../types/database.js';
+export declare class FactoryContext implements FactoryContextContract {
+    isStubbed: boolean;
+    $trx: TransactionClientContract | undefined;
+    faker: import("@faker-js/faker").Faker;
+    constructor(isStubbed: boolean, $trx: TransactionClientContract | undefined);
+}
+//# sourceMappingURL=factory_context.d.ts.map
