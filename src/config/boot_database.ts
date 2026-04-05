@@ -6,10 +6,13 @@ import { existsSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { Database } from '../database/main.js'
 import type { DatabaseConfig } from '../types/database.js'
+import type { NamingStrategyContract } from '../types/model.js'
 import type { Emitter } from '../shims/runtime/events.js'
 import type { Logger } from '../shims/runtime/logger.js'
 import { createConsoleLogger } from './console_logger.js'
 import { setDefaultModelAdapter } from '../orm/default_model_adapter.js'
+import { BaseModel } from '../orm/base_model/index.js'
+import { CamelCaseNamingStrategy } from '../orm/naming_strategies/camel_case.js'
 import { loadDatabaseConfig, resolveDefaultDatabaseConfigPath } from './load.js'
 import { resolveAppRootFromCandidates } from './resolve_app_root.js'
 
@@ -24,6 +27,11 @@ export type BootDatabaseOptions = {
   emitter?: Emitter
   /** Close the previous instance and create another (useful in tests). */
   force?: boolean
+  /**
+   * Sets `BaseModel.namingStrategy` (same as assigning manually in Adonis/Lucid).
+   * `null` resets to `CamelCaseNamingStrategy`. Omit to leave unchanged.
+   */
+  namingStrategy?: NamingStrategyContract | null
 }
 
 let singleton: Database | null = null
@@ -57,6 +65,11 @@ function resolveConfigFilePath(appRoot: string, options?: BootDatabaseOptions): 
     return def
   }
   return join(appRoot, 'build', 'config', 'database.js')
+}
+
+/** Same as `BaseModel.namingStrategy = strategy ?? new CamelCaseNamingStrategy()` (Adonis-style). */
+function applyBaseModelNamingStrategy(strategy: NamingStrategyContract | null): void {
+  BaseModel.namingStrategy = strategy ?? new CamelCaseNamingStrategy()
 }
 
 /**
@@ -97,12 +110,16 @@ export async function bootDatabase(options?: BootDatabaseOptions): Promise<Datab
   }
   if (!options?.force && singleton) {
     setDefaultModelAdapter(singleton.modelAdapter())
+    if (options?.namingStrategy !== undefined) {
+      applyBaseModelNamingStrategy(options.namingStrategy)
+    }
     return singleton
   }
 
   if (options?.force && singleton) {
     await singleton.manager.closeAll()
     setDefaultModelAdapter(null)
+    applyBaseModelNamingStrategy(null)
     singleton = null
   }
 
@@ -110,6 +127,9 @@ export async function bootDatabase(options?: BootDatabaseOptions): Promise<Datab
     .then((db) => {
       singleton = db
       setDefaultModelAdapter(db.modelAdapter())
+      if (options?.namingStrategy !== undefined) {
+        applyBaseModelNamingStrategy(options.namingStrategy)
+      }
       return db
     })
     .finally(() => {
@@ -132,4 +152,5 @@ export async function resetBootDatabase(): Promise<void> {
   singleton = null
   bootInFlight = null
   setDefaultModelAdapter(null)
+  applyBaseModelNamingStrategy(null)
 }

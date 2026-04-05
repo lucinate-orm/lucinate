@@ -38,6 +38,7 @@ import {
   type ModelRelationOptions,
   type ModelQueryBuilderContract,
   type ModelPaginatorContract,
+  type NamingStrategyContract,
   type QueryScopeCallback,
   type QueryScope,
 } from '../../types/model.js'
@@ -107,7 +108,7 @@ class BaseModelImpl implements LucidRow {
   /**
    * Naming strategy for model properties
    */
-  static namingStrategy = new CamelCaseNamingStrategy()
+  static namingStrategy: NamingStrategyContract = new CamelCaseNamingStrategy()
 
   /**
    * Primary key is required to build relationships across models
