@@ -1,4 +1,4 @@
 /**
- * Helpers de string — reexport de @poppinss/utils/string.
+ * String helpers — re-export of @poppinss/utils/string.
  */
 export { default } from '@poppinss/utils/string'

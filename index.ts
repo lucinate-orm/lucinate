@@ -1,5 +1,5 @@
 /*
- * lucinate — entry público (port do Lucid ORM, framework-agnostic).
+ * lucinate — public entry (Lucid ORM port, framework-agnostic).
  */
 export * as errors from './src/errors.js'
 export { defineConfig } from './src/define_config.js'
@@ -26,7 +26,7 @@ export { OrmSchemaGenerator } from './src/orm/schema_generator/generator.js'
 export * from './src/orm/main.js'
 export * from './src/schema/main.js'
 
-/** Tipos de relações para `declare user: BelongsTo<typeof User>` etc. */
+/** Relation types for `declare user: BelongsTo<typeof User>` etc. */
 export type {
   BelongsTo,
   HasMany,

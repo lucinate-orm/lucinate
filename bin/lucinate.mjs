@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * CLI lucinate — delega para scripts em scripts/ (generate, migrate, seed).
- * Uso: lucinate make:migration <nome> | make:model | make:seeder | migrate | migrate:down | seed
+ * lucinate CLI — delegates to scripts in scripts/ (generate, migrate, seed).
+ * Usage: lucinate make:migration <name> | make:model | make:seeder | migrate | migrate:down | seed
  */
 import { spawnSync } from 'node:child_process'
 import { existsSync } from 'node:fs'
@@ -17,7 +17,7 @@ function scriptPath(name) {
 function runNodeScript(scriptFile, forwardedArgs) {
   const abs = scriptPath(scriptFile)
   if (!existsSync(abs)) {
-    console.error(`Script em falta: ${abs}`)
+    console.error(`Missing script: ${abs}`)
     process.exit(1)
   }
   const r = spawnSync(process.execPath, [abs, ...forwardedArgs], {
@@ -36,17 +36,17 @@ function printHelp() {
   console.log(`
 lucinate — lucinate CLI
 
-Comandos:
-  make:migration <nome> [opções]   Gera migration; -m model, -s seeder (ver generate.mjs)
-  make:model <Nome> [opções]       Gera model
-  make:seeder <nome> [opções]      Gera seeder
-  migrate [opções]                 Corre migrações (up)
-  migrate:down [opções]            Rollback (down)
-  seed [opções]                    Corre seeders
+Commands:
+  make:migration <name> [options]   Generate migration; -m, -s, --contents-from (see generate.mjs)
+  make:model <Name> [options]       Generate model
+  make:seeder <name> [options]      Generate seeder
+  migrate [options]                 Run migrations (up)
+  migrate:down [options]            Rollback (down)
+  seed [options]                    Run seeders
 
-Opções comuns: --app-root, --config, --file / -f (seed), --help (nos subcomandos)
+Common options: --app-root, --contents-from (generators), --config, --file / -f (seed), --help
 
-Exemplos:
+Examples:
   lucinate make:migration create_posts_table --app-root .
   lucinate make:migration create_posts_table -m -s
   lucinate migrate --app-root examples/cli
@@ -54,7 +54,7 @@ Exemplos:
   lucinate seed -f users_seeder_seeder
   lucinate seed --file database/seeders/posts_seeder_seeder
 
-Requer build do pacote (npm run build em lucinate) para importar build/.
+Requires a built package (npm run build in lucinate) to import build/.
 `)
 }
 
@@ -88,7 +88,7 @@ switch (cmd) {
     runNodeScript('seed.mjs', rest)
     break
   default:
-    console.error(`Comando desconhecido: ${cmd}\n`)
+    console.error(`Unknown command: ${cmd}\n`)
     printHelp()
     process.exit(1)
 }

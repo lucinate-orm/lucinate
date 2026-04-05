@@ -4,12 +4,12 @@ import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 
 /**
- * Se existir `tsconfig.db.json` (cwd ou app-root), corre `tsc -p …` para gerar
- * `build/**` antes do Node carregar migrations/seeders em `.js`.
+ * If `tsconfig.db.json` exists (cwd or app-root), runs `tsc -p …` to emit
+ * `build/**` before Node loads migrations/seeders as `.js`.
  *
- * - Desativa: `LUCINATE_DATABASE_SKIP_DB_BUILD=1`
- * - Requer `typescript` no projeto onde está o `tsconfig.db.json`
- * - Usa o mesmo runtime que invocou o script (`node` ou `bun` via `process.execPath`)
+ * - Disable: `LUCINATE_DATABASE_SKIP_DB_BUILD=1`
+ * - Requires `typescript` in the project where `tsconfig.db.json` lives
+ * - Uses the same runtime as the invoking script (`node` or `bun` via `process.execPath`)
  */
 export function compileDbArtifactsIfNeeded(cwd, appRoot) {
     if (process.env.LUCINATE_DATABASE_SKIP_DB_BUILD === "1") {
@@ -28,7 +28,7 @@ export function compileDbArtifactsIfNeeded(cwd, appRoot) {
         tscPath = requirePkg.resolve("typescript/bin/tsc");
     } catch (e) {
         console.warn(
-            `[lucinate] Encontrado ${tsconfigPath} mas não foi possível resolver typescript/bin/tsc (${e?.message ?? e}). Instala "typescript" ou corre o build manualmente.`,
+            `[lucinate] Found ${tsconfigPath} but could not resolve typescript/bin/tsc (${e?.message ?? e}). Install "typescript" or run the build manually.`,
         );
         return;
     }
@@ -51,9 +51,9 @@ export function compileDbArtifactsIfNeeded(cwd, appRoot) {
 }
 
 /**
- * Se existir `tsc-alias` no projeto, reescreve `paths` do tsconfig no JS emitido
- * (ex.: `@/models/...` → caminhos relativos). Sem isto, `tsc` mantém os aliases
- * e o Node falha ao carregar migrations/seeders.
+ * If `tsc-alias` exists in the project, rewrites tsconfig `paths` in emitted JS
+ * (e.g. `@/models/...` → relative paths). Without this, `tsc` keeps aliases
+ * and Node fails loading migrations/seeders.
  */
 function runTscAliasIfAvailable(projectDir, tsconfigPath) {
     let tscAliasPath;

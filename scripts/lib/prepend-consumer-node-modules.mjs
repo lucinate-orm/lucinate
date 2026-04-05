@@ -3,14 +3,14 @@ import { existsSync } from 'node:fs'
 import { createRequire } from 'node:module'
 
 /**
- * O Knex faz `require('mysql2'|'pg'|...)`. Com `lucinate` em `file:` ou layouts
- * Bun/npm, o Node pode não resolver drivers instalados só na app consumidora.
- * Antecede `cwd/node_modules` e `appRoot/node_modules` à lista interna de paths.
+ * Knex uses `require('mysql2'|'pg'|...)`. With `lucinate` linked via `file:` or certain
+ * Bun/npm layouts, Node may not resolve drivers installed only in the consumer app.
+ * Prepends `cwd/node_modules` and `appRoot/node_modules` to the internal path list.
  *
- * Sem efeito em Bun (não expõe `module._nodeModulePaths` da mesma forma).
+ * No effect on Bun (does not expose `module._nodeModulePaths` the same way).
  *
- * @param {string} cwd geralmente process.cwd()
- * @param {string} appRoot raiz da app (resolvida)
+ * @param {string} cwd usually process.cwd()
+ * @param {string} appRoot resolved app root
  */
 export function prependConsumerNodeModulesPaths(cwd, appRoot) {
   if (process.versions.bun) {
@@ -44,6 +44,6 @@ export function prependConsumerNodeModulesPaths(cwd, appRoot) {
       return merged
     }
   } catch {
-    // ignora se ambiente não suportar patch
+    // ignore if environment does not support patching
   }
 }

@@ -11,7 +11,7 @@ import type { Database } from '../database/main.js'
 import type { DatabaseQueryBuilderContract } from './querybuilder.js'
 
 /**
- * Contexto de campo alinhado com Vine (tipos locais para não exigir @vinejs/vine na compilação).
+ * Field context aligned with Vine (local types so @vinejs/vine is not required at compile time).
  */
 export type VineFieldContext = {
   meta?: Record<string, unknown>

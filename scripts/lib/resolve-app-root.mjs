@@ -2,13 +2,13 @@ import { join, resolve } from 'node:path'
 import { hasDatabaseConfigMarker } from './default-config-path.mjs'
 
 /**
- * Quando `--app-root` e `APP_ROOT` não estão definidos, usa o primeiro diretório
- * (por ordem) onde existir config de BD na raiz da app (`config/database.*` ou
- * `build/config/database.js`; legado: `src/config/database.ts`):
- * `./` (cwd), `./src`, `./app` — relativos a `cwd`.
+ * When `--app-root` and `APP_ROOT` are unset, uses the first directory (in order) where
+ * DB config exists at the app root (`config/database.*` or
+ * `build/config/database.js`; legacy: `src/config/database.ts`):
+ * `./` (cwd), `./src`, `./app` — relative to `cwd`.
  *
- * @param {string} cwd process.cwd() ou equivalente
- * @returns {string} caminho absoluto da raiz da app
+ * @param {string} cwd process.cwd() or equivalent
+ * @returns {string} absolute app root path
  */
 export function resolveAppRootFromCandidates(cwd) {
   const bases = [cwd, join(cwd, 'src'), join(cwd, 'app')]

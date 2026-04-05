@@ -1,5 +1,5 @@
 /**
- * Shim para bindings de transformer (opcional).
+ * Shim for transformer bindings (optional).
  */
 export class BaseTransformer {
   resource!: unknown

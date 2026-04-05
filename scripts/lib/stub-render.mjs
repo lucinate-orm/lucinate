@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises'
 
 /**
- * Substitui `{{chave}}` no template pelos valores em `vars`.
+ * Replace `{{key}}` placeholders in template with `vars`.
  * @param {string} template
  * @param {Record<string, string>} vars
  */
@@ -10,8 +10,8 @@ export function renderStub(template, vars) {
 }
 
 /**
- * Lê ficheiro .stub e renderiza.
- * @param {string} stubPath caminho absoluto
+ * Read .stub file and render.
+ * @param {string} stubPath absolute path
  * @param {Record<string, string>} vars
  */
 export async function renderStubFile(stubPath, vars) {

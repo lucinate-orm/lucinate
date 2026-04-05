@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
- * Corre migrações (up ou down).
+ * Run migrations (up or down).
  *
- * Config por defeito: build/config/database.js (ex.: config/database.ts na raiz), depois
+ * Default config: build/config/database.js (e.g. from config/database.ts at app root), then
  * APP_ROOT/config/database.{js,json,ts}
- * Env: APP_ROOT, LUCINATE_CONFIG_PATH (ou LUCINATE_DATABASE_CONFIG)
+ * Env: APP_ROOT, LUCINATE_CONFIG_PATH (or LUCINATE_DATABASE_CONFIG)
  */
 import { EventEmitter } from "node:events";
 import { parseArgs } from "node:util";
@@ -48,7 +48,7 @@ function getAppRoot() {
 const appRoot = getAppRoot();
 
 if (!existsSync(indexJs)) {
-    console.error(`Build em falta: ${indexJs}\nCorre primeiro: npm run build`);
+    console.error(`Missing build: ${indexJs}\nRun npm run build first`);
     process.exit(1);
 }
 
@@ -63,9 +63,9 @@ const configPath = resolve(
 );
 
 if (!existsSync(configPath)) {
-    console.error(`Config não encontrado: ${configPath}`);
+    console.error(`Config not found: ${configPath}`);
     console.error(
-        "Indica --config ou LUCINATE_CONFIG_PATH (ou LUCINATE_DATABASE_CONFIG), ou cria config/database.ts na raiz (compilado para build/config/database.js) ou config/database.{js,json}.",
+        "Pass --config or LUCINATE_CONFIG_PATH (or LUCINATE_DATABASE_CONFIG), or add config/database.ts at the app root (compiled to build/config/database.js) or config/database.{js,json}.",
     );
     process.exit(1);
 }
@@ -106,6 +106,6 @@ if (runner.error) {
     process.exit(1);
 }
 
-console.log(`Migrações: estado=${runner.status}`);
+console.log(`Migrations: status=${runner.status}`);
 await runner.close();
 process.exit(0);

@@ -610,9 +610,9 @@ class BaseModelImpl implements LucidRow {
     /**
      * Return when already booted
      *
-     * Os decoradores podem chamar `boot()` ao importar o model (antes do SeedsRunner
-     * definir o adapter). Nesse caso voltamos aqui com `booted` mas sem `$adapter`;
-     * se já existir fallback (seed), aplica-se antes de sair.
+     * Decorators may call `boot()` when importing the model (before SeedsRunner
+     * sets the adapter). We then return here with `booted` but without `$adapter`;
+     * if a fallback (seed) already exists, apply it before exiting.
      */
     if (this.booted === true) {
       if (!this.$adapter) {
@@ -625,8 +625,8 @@ class BaseModelImpl implements LucidRow {
     }
 
     /**
-     * Contextos sem boot de app (ex.: seeders): SeedsRunner define um adapter por defeito
-     * alinhado com a instância Database do comando.
+     * Contexts without app boot (e.g. seeders): SeedsRunner sets a default adapter
+     * aligned with the command's Database instance.
      */
     if (!this.$adapter) {
       const fallback = getDefaultModelAdapter()

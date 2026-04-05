@@ -2,8 +2,8 @@ import { pathToFileURL } from 'node:url'
 import { join } from 'node:path'
 
 /**
- * Contexto mínimo exigido por MigrationRunner / SeedsRunner.
- * @param {string} appRoot caminho absoluto da raiz do projeto (onde resolvem paths de migrations/seeders)
+ * Minimal context required by MigrationRunner / SeedsRunner.
+ * @param {string} appRoot absolute project root (where migration/seeder paths resolve)
  */
 export function createApplication(appRoot) {
   return {

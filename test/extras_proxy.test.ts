@@ -1,13 +1,13 @@
 /*
- * Acesso direto a $extras via Proxy (paridade Laravel).
- * `column()` aplicado manualmente (sem sintaxe de decorator) para o runner `tsx` + esbuild.
+ * Direct access to $extras via Proxy (Laravel-style parity).
+ * `column()` applied manually (no decorator syntax) for the `tsx` + esbuild runner.
  */
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { column } from '../src/orm/decorators/index.js'
 import { BaseModel } from '../src/orm/base_model/index.js'
 
-test('extras: leitura direta espelha $extras', () => {
+test('extras: direct read mirrors $extras', () => {
   class Demo extends BaseModel {
     static override table = 'demos'
     declare id: number
@@ -33,7 +33,7 @@ test('extras: leitura direta espelha $extras', () => {
   assert.equal(row.name, 'one')
 })
 
-test('extras: coluna mapeada não duplica em $extras', () => {
+test('extras: mapped column is not duplicated in $extras', () => {
   class Demo extends BaseModel {
     static override table = 'demos'
     declare id: number
@@ -48,7 +48,7 @@ test('extras: coluna mapeada não duplica em $extras', () => {
   assert.equal(Object.prototype.hasOwnProperty.call(row.$extras, 'id'), false)
 })
 
-test('extras: escrita direta atualiza $extras quando a chave já existe', () => {
+test('extras: direct write updates $extras when key already exists', () => {
   class Demo extends BaseModel {
     static override table = 'demos'
     declare id: number

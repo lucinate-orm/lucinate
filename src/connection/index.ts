@@ -13,9 +13,9 @@ import type { Knex } from 'knex'
 import { EventEmitter } from 'node:events'
 
 /**
- * Knex via CommonJS: o entry ESM (knex.mjs) faz com que os `require()` dos dialectos
- * falhem em projetos "type": "module". Usamos o subpath `knex/knex` (export `./knex` → knex.js):
- * `require('knex')` em alguns runtimes (ex.: Bun) pode resolver o ramo `types` de `exports` e carregar `.d.ts`.
+ * Knex via CommonJS: the ESM entry (knex.mjs) can make dialect `require()` fail in `"type": "module"` projects.
+ * We use the `knex/knex` subpath (export `./knex` → knex.js): `require('knex')` on some runtimes (e.g. Bun)
+ * may resolve the `types` branch of `exports` and load `.d.ts`.
  */
 const require = createRequire(import.meta.url)
 const knex = require('knex/knex') as typeof import('knex').default

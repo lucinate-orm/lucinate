@@ -1,4 +1,4 @@
 /**
- * Tipos genéricos de serviço de aplicação (test utils / bindings opcionais).
+ * Generic application service types (test utils / optional bindings).
  */
 export type ApplicationService = Record<string, unknown>

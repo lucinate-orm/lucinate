@@ -1,5 +1,5 @@
 /**
- * Contexto de aplicação mínimo para migrations, seeders e schema generator.
+ * Minimal application context for migrations, seeders, and schema generator.
  */
 export type Application<_T = unknown> = {
   readonly appRoot: string
@@ -7,12 +7,12 @@ export type Application<_T = unknown> = {
   migrationsPath(): string
   seedersPath(): string
   relativePath(path: string): string
-  /** ex.: produção vs desenvolvimento */
+  /** e.g. production vs development */
   inProduction: boolean
-  /** Resolve caminho absoluto a partir da raiz da app */
+  /** Resolve absolute path from app root */
   makePath(path: string): string
-  /** Carrega módulo ESM/CJS default export (ex.: regras de schema) */
+  /** Load ESM/CJS module default export (e.g. schema rules) */
   importDefault: (path: string) => Promise<unknown>
-  /** ex.: development, production, test */
+  /** e.g. development, production, test */
   nodeEnvironment: string
 }

@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /**
- * Corre seeders.
+ * Run seeders.
  *
- * Config por defeito: build/config/database.js (ex.: config/database.ts na raiz), depois
+ * Default config: build/config/database.js (e.g. from config/database.ts at app root), then
  * APP_ROOT/config/database.{js,json,ts}
- * Env: APP_ROOT, LUCINATE_CONFIG_PATH (ou LUCINATE_DATABASE_CONFIG)
+ * Env: APP_ROOT, LUCINATE_CONFIG_PATH (or LUCINATE_DATABASE_CONFIG)
  *
- * Só alguns seeders: --file <nome> (-f) repetível, ou LUCINATE_SEED_FILE (lista separada por vírgulas).
- * Nome: basename (ex.: users_seeder_seeder) ou caminho lógico (ex.: database/seeders/users_seeder_seeder).
+ * Filter seeders: repeatable --file <name> (-f), or LUCINATE_SEED_FILE (comma-separated list).
+ * Name: basename (e.g. users_seeder_seeder) or logical path (e.g. database/seeders/users_seeder_seeder).
  */
 import { EventEmitter } from 'node:events'
 import { parseArgs } from 'node:util'
@@ -31,7 +31,7 @@ const { values } = parseArgs({
   options: {
     config: { type: 'string', short: 'c' },
     'app-root': { type: 'string' },
-    /** Um ou mais seeders (repetir a flag ou lista separada por vírgula). Ex.: --file users_seeder_seeder */
+    /** One or more seeders (repeat flag or comma-separated list). E.g. --file users_seeder_seeder */
     file: { type: 'string', short: 'f', multiple: true },
   },
   strict: true,
@@ -48,7 +48,7 @@ function getAppRoot() {
 const appRoot = getAppRoot()
 
 if (!existsSync(indexJs)) {
-  console.error(`Build em falta: ${indexJs}\nCorre primeiro: npm run build`)
+  console.error(`Missing build: ${indexJs}\nRun npm run build first`)
   process.exit(1)
 }
 
@@ -63,9 +63,9 @@ const configPath = resolve(
 )
 
 if (!existsSync(configPath)) {
-  console.error(`Config não encontrado: ${configPath}`)
+  console.error(`Config not found: ${configPath}`)
   console.error(
-    'Indica --config ou LUCINATE_CONFIG_PATH (ou LUCINATE_DATABASE_CONFIG), ou cria config/database.ts na raiz (compilado para build/config/database.js) ou config/database.{js,json}.'
+    'Pass --config or LUCINATE_CONFIG_PATH (or LUCINATE_DATABASE_CONFIG), or add config/database.ts at the app root (compiled to build/config/database.js) or config/database.{js,json}.'
   )
   process.exit(1)
 }
@@ -86,8 +86,8 @@ const seedFilters = collectSeedFilters(values.file)
 const files = filterSeedFiles(await runner.getList(), seedFilters)
 if (seedFilters.length && files.length === 0) {
   console.error(
-    `[lucinate] Nenhum seeder corresponde a: ${seedFilters.join(', ')}\n` +
-      'Usa o nome lógico (ex.: database/seeders/users_seeder_seeder) ou só o ficheiro (ex.: users_seeder_seeder).'
+    `[lucinate] No seeder matches: ${seedFilters.join(', ')}\n` +
+      'Use the logical name (e.g. database/seeders/users_seeder_seeder) or the file name only (e.g. users_seeder_seeder).'
   )
   await runner.close()
   process.exit(1)
@@ -145,8 +145,8 @@ function filterSeedFiles(all, filters) {
 }
 
 /**
- * Compara nome lógico do seeder (ex.: database/seeders/foo_seeder) com o filtro.
- * Aceita: caminho completo, só o basename, ou com prefixo build/.
+ * Match seeder logical name (e.g. database/seeders/foo_seeder) against filter.
+ * Accepts: full path, basename only, or with build/ prefix.
  * @param {string} fileName
  * @param {string} filter
  */

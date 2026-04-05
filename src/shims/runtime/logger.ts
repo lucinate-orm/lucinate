@@ -1,5 +1,5 @@
 /**
- * Interface mínima de logger para Knex / connection (compatível com Pino-like loggers).
+ * Minimal logger interface for Knex / connection (compatible with Pino-like loggers).
  */
 export interface Logger {
   trace(obj: unknown, msg?: string, ...args: unknown[]): void

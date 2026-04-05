@@ -1,6 +1,6 @@
 /**
- * bootDatabase — usa build/ (evita tsx + knex types).
- * Executar: npm run build && node --test test/boot_database.test.mjs
+ * bootDatabase — uses build/ (avoids tsx + knex types issues).
+ * Run: npm run build && node --test test/boot_database.test.mjs
  */
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -27,7 +27,7 @@ afterEach(async () => {
   await resetBootDatabase()
 })
 
-test('bootDatabase: mesma instância sem force', async () => {
+test('bootDatabase: same instance without force', async () => {
   const cfg = defineConfig({
     connection: 'default',
     connections: {
@@ -43,7 +43,7 @@ test('bootDatabase: mesma instância sem force', async () => {
   assert.strictEqual(a, b)
 })
 
-test('bootDatabase: regista default model adapter e reset limpa', async () => {
+test('bootDatabase: registers default model adapter and reset clears', async () => {
   const cfg = defineConfig({
     connection: 'default',
     connections: {
@@ -61,7 +61,7 @@ test('bootDatabase: regista default model adapter e reset limpa', async () => {
   assert.strictEqual(getDefaultModelAdapter(), null)
 })
 
-test('bootDatabase: force recria instância', async () => {
+test('bootDatabase: force recreates instance', async () => {
   const cfg = defineConfig({
     connection: 'default',
     connections: {
@@ -77,7 +77,7 @@ test('bootDatabase: force recria instância', async () => {
   assert.notStrictEqual(a, b)
 })
 
-test('bootDatabase: appRoot explícito carrega config/database.json', async () => {
+test('bootDatabase: explicit appRoot loads config/database.json', async () => {
   const tmp = mkdtempSync(join(tmpdir(), 'lucinate-boot-'))
   mkdirSync(join(tmp, 'config'), { recursive: true })
   writeFileSync(

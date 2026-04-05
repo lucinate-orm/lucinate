@@ -17,14 +17,14 @@ export class BaseSeeder {
     public client: QueryClientContract,
     public db: Database,
     /**
-     * Nome da conexão usada pelo comando `seed` (config.connection), para `connection()` sem argumentos.
+     * Connection name used by the `seed` command (`config.connection`), for `connection()` with no arguments.
      */
     public readonly seedConnectionName?: string
   ) {}
 
   /**
-   * Passa a usar esta conexão para operações de `BaseModel` no seeder (até novo `connection` ou fim do `run`).
-   * Sem argumentos, repõe a conexão do seed (`seedConnectionName` / primária).
+   * Use this connection for `BaseModel` operations in the seeder (until another `connection` or end of `run`).
+   * With no arguments, restores the seed connection (`seedConnectionName` / primary).
    */
   connection(name?: string): void {
     const resolved = name ?? this.seedConnectionName ?? this.db.primaryConnectionName

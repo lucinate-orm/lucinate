@@ -1,5 +1,5 @@
 /**
- * Shim para HealthCheckResult (health checks opcionais).
+ * Shim for HealthCheckResult (optional health checks).
  */
 export type HealthCheckResult = {
   displayName?: string

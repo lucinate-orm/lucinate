@@ -25,7 +25,7 @@ export class Adapter implements AdapterContract {
   constructor(
     private db: Database,
     /**
-     * Quando o model não define `static connection`, usa esta conexão (ex.: seed com `connection('reporting')`).
+     * When the model does not define `static connection`, use this connection (e.g. seed with `connection('reporting')`).
      */
     private defaultConnectionForModels?: string
   ) {}

@@ -1,12 +1,12 @@
 /*
- * lucinate — resolução da raiz da app (paridade com scripts/lib/resolve-app-root.mjs).
+ * lucinate — app root resolution (parity with scripts/lib/resolve-app-root.mjs).
  */
 import { existsSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { resolveDefaultDatabaseConfigPath } from './load.js'
 
 /**
- * Indica se em `appRoot` existe um marcador reconhecível de config de BD.
+ * Whether `appRoot` has a recognizable DB config marker.
  */
 export function hasDatabaseConfigMarker(appRoot: string): boolean {
   if (resolveDefaultDatabaseConfigPath(appRoot)) {
@@ -22,7 +22,7 @@ export function hasDatabaseConfigMarker(appRoot: string): boolean {
 }
 
 /**
- * Escolhe a primeira base (`cwd`, `cwd/src`, `cwd/app`) onde exista config de BD; senão `cwd` absoluto.
+ * Pick the first base (`cwd`, `cwd/src`, `cwd/app`) where DB config exists; otherwise absolute `cwd`.
  */
 export function resolveAppRootFromCandidates(cwd: string): string {
   const bases = [cwd, join(cwd, 'src'), join(cwd, 'app')]

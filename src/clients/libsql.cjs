@@ -1,4 +1,4 @@
-/** Caminho explícito: em Node 22 + ESM, `require('knex/lib/dialects/sqlite3')` sem `/index.js` falha. */
+/** Explicit path: on Node 22 + ESM, `require('knex/lib/dialects/sqlite3')` without `/index.js` fails. */
 const Sqlite3Client = require('knex/lib/dialects/sqlite3/index.js')
 
 module.exports = class LibSQLClient extends Sqlite3Client {

@@ -1,8 +1,8 @@
 /*
  * lucinate
  *
- * Propriedades internas da instância BaseModel — não devem ser
- * sobrescritas via resultado do adapter nem roteadas para $extras no proxy.
+ * Internal BaseModel instance properties — must not be
+ * overwritten from adapter results or routed to $extras in the proxy.
  */
 
 export const INTERNAL_INSTANCE_PROPERTIES = new Set<string>([

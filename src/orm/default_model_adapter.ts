@@ -1,6 +1,6 @@
 /*
- * Adapter opcional para contextos sem boot de aplicação (ex.: seeders via CLI).
- * SeedsRunner define-o antes de cada run; BaseModel usa-o no boot se a classe ainda não tiver adapter.
+ * Optional adapter for contexts without application boot (e.g. seeders via CLI).
+ * SeedsRunner sets it before each run; BaseModel uses it on boot if the class has no adapter yet.
  */
 import type { AdapterContract } from '../types/model.js'
 

@@ -1,5 +1,5 @@
 /**
- * Exceções de runtime (RuntimeException sobre @poppinss/utils/exception).
+ * Runtime exceptions (RuntimeException on top of @poppinss/utils/exception).
  */
 import { Exception } from '@poppinss/utils/exception'
 

@@ -2,11 +2,10 @@ import { existsSync } from 'node:fs'
 import { isAbsolute, join, relative } from 'node:path'
 
 /**
- * Em scripts Node: `database.ts` em `config/` não é carregável sem loader; prioriza-se
- * o artefacto compilado `build/config/database.js` (ex.: a partir de `config/database.ts`).
+ * In Node scripts: `database.ts` under `config/` is not loadable without a loader; the compiled
+ * artifact `build/config/database.js` is preferred (e.g. from `config/database.ts`).
  *
- * Dev: database.js → database.json → database.ts (último; só se usares loader)
- * Produção: database.js → database.json → database.ts
+ * Dev / prod: database.js → database.json → database.ts
  */
 export function getDefaultDatabaseConfigFilenames(nodeEnv) {
   const prod = nodeEnv === 'production'
@@ -16,7 +15,7 @@ export function getDefaultDatabaseConfigFilenames(nodeEnv) {
 }
 
 /**
- * Há ficheiro de config reconhecível (para detetar APP_ROOT antes do compile).
+ * Whether a recognizable DB config file exists (to detect APP_ROOT before compile).
  * @param {string} appRoot
  */
 export function hasDatabaseConfigMarker(appRoot) {
@@ -27,7 +26,7 @@ export function hasDatabaseConfigMarker(appRoot) {
 }
 
 /**
- * @param {string} appRoot caminho absoluto da raiz da aplicação
+ * @param {string} appRoot absolute application root path
  * @returns {string | null}
  */
 export function resolveDefaultDatabaseConfigPath(appRoot) {

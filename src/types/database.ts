@@ -342,7 +342,7 @@ type SharedConnectionNode = {
 export type MigratorConfig = {
   disableTransactions?: boolean
   paths?: string[]
-  /** Nome da tabela de migrações (default: `migrations`, como no Laravel). */
+  /** Migrations table name (default: `migrations`, like Laravel). */
   tableName?: string
   disableRollbacksInProduction?: boolean
   naturalSort?: boolean
@@ -367,7 +367,7 @@ export type SharedConfigNode = {
   migrations?: MigratorConfig
   seeders?: SeedersConfig
   schemaGeneration?: Partial<
-    Pick<OrmSchemaGeneratorConfig, 'enabled' | 'outputPath' | 'rulesPaths'>
+    Pick<OrmSchemaGeneratorConfig, 'enabled' | 'outputPath' | 'rulesPaths' | 'excludeTables'>
   >
   wipe?: { ignoreTables?: string[] }
   pool?: {

@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /**
- * Gera ficheiros: migration | model | seeder
+ * Generate files: migration | model | seeder
  *
- * Uso:
- *   node scripts/generate.mjs migration <nome> [--create|--alter]
- *   node scripts/generate.mjs model <Nome> [--table users]
- *   node scripts/generate.mjs seeder <nome>
+ * Usage:
+ *   node scripts/generate.mjs migration <name> [--create|--alter]
+ *   node scripts/generate.mjs model <Name> [--table users]
+ *   node scripts/generate.mjs seeder <name>
  *
- * Opções: --app-root, --dir, --import-from lucinate, --contents-from
+ * Options: --app-root, --dir, --import-from lucinate, --contents-from
  */
 import { parseArgs } from 'node:util'
 import { existsSync } from 'node:fs'
@@ -41,14 +41,14 @@ const { values, positionals } = parseArgs({
     'app-root': { type: 'string' },
     dir: { type: 'string' },
     'import-from': { type: 'string', default: 'lucinate' },
-    /** Usa o conteúdo deste ficheiro em vez do stub (migration, model, seeder). */
+    /** Use this file's contents instead of the stub (migration, model, seeder). */
     'contents-from': { type: 'string' },
     create: { type: 'boolean', default: false },
     alter: { type: 'boolean', default: false },
     table: { type: 'string' },
-    /** Só com comando migration: gera também o model (nome derivado da tabela). */
+    /** Only with migration: also generate model (name derived from table). */
     'with-model': { type: 'boolean', short: 'm', default: false },
-    /** Só com comando migration: gera também o seeder (nome derivado da tabela). */
+    /** Only with migration: also generate seeder (name derived from table). */
     'with-seeder': { type: 'boolean', short: 's', default: false },
     help: { type: 'boolean', short: 'h', default: false },
   },
@@ -60,20 +60,20 @@ if (values.help || positionals.length < 2) {
   console.log(`
 lucinate generate
 
-  node scripts/generate.mjs migration <nome> [--create] [--alter] [-m|--with-model] [-s|--with-seeder] [--dir path]
-  node scripts/generate.mjs model <NomeModelo> [--table nome_tabela] [--dir path]
-  node scripts/generate.mjs seeder <nome> [--dir path]
+  node scripts/generate.mjs migration <name> [--create] [--alter] [-m|--with-model] [-s|--with-seeder] [--dir path]
+  node scripts/generate.mjs model <ModelName> [--table table_name] [--dir path]
+  node scripts/generate.mjs seeder <name> [--dir path]
 
-  --app-root        raiz da app (default: cwd ou APP_ROOT)
-  --dir             pasta de destino (sobrepõe paths da config)
-  --import-from     pacote a importar (default: lucinate)
-  --contents-from   caminho do ficheiro cujo conteúdo substitui o stub gerado
-  -m, --with-model  (só migration) gera também o model
-  -s, --with-seeder (só migration) gera também o seeder
+  --app-root        app root (default: cwd or APP_ROOT)
+  --dir             output directory (overrides config paths)
+  --import-from     package to import from (default: lucinate)
+  --contents-from   path to file whose contents replace the generated stub
+  -m, --with-model  (migration only) also generate model
+  -s, --with-seeder (migration only) also generate seeder
 
-  Não sobrescreve: se o ficheiro de destino já existir, ignora e mostra [skip].
+  Does not overwrite: if the target file already exists, skips and prints [skip].
 
-Requer npm run build no pacote lucinate.
+Requires npm run build in the lucinate package.
 `)
   process.exit(positionals.length < 2 ? 1 : 0)
 }
@@ -93,7 +93,7 @@ if (existsSync(configPath)) {
   try {
     config = await loadDatabaseConfig(configPath)
   } catch (e) {
-    console.warn('Aviso: não foi possível carregar a config:', configPath, e.message)
+    console.warn('Warning: could not load config:', configPath, e.message)
   }
 }
 
@@ -110,7 +110,7 @@ async function bodyFromStubOrFile(stubPath, stubVars) {
   }
   const abs = isAbsolute(cf) ? cf : resolve(appRoot, cf)
   if (!existsSync(abs)) {
-    throw new Error(`--contents-from: ficheiro não encontrado: ${abs}`)
+    throw new Error(`--contents-from: file not found: ${abs}`)
   }
   return readFile(abs, 'utf-8')
 }
@@ -130,7 +130,7 @@ async function cmdMigration() {
   } else {
     tableName = snakeInput
     if (values.alter && values.create) {
-      console.warn('Aviso: --create e --alter juntos; a usar --alter.')
+      console.warn('Warning: --create and --alter together; using --alter.')
     }
     if (values.alter) {
       useAlter = true
@@ -162,12 +162,12 @@ async function cmdMigration() {
 
   const wroteMigration = await writeGeneratedFile(outPath, body)
   if (wroteMigration) {
-    console.log(`Migration gerada: ${outPath}`)
+    console.log(`Migration written: ${outPath}`)
   } else {
-    console.log(`[skip] já existe: ${outPath}`)
+    console.log(`[skip] already exists: ${outPath}`)
   }
 
-  /** Evita que `-m`/`-s` reutilizem o mesmo `--contents-from` da migration. */
+  /** Prevent `-m`/`-s` from reusing the same `--contents-from` as the migration. */
   values['contents-from'] = undefined
 
   if (values['with-model']) {
@@ -203,9 +203,9 @@ async function cmdModel(opts = {}) {
 
   const wrote = await writeGeneratedFile(outPath, body)
   if (wrote) {
-    console.log(`Model gerado: ${outPath}`)
+    console.log(`Model written: ${outPath}`)
   } else {
-    console.log(`[skip] já existe: ${outPath}`)
+    console.log(`[skip] already exists: ${outPath}`)
   }
 }
 
@@ -232,9 +232,9 @@ async function cmdSeeder(opts = {}) {
 
   const wrote = await writeGeneratedFile(outPath, body)
   if (wrote) {
-    console.log(`Seeder gerado: ${outPath}`)
+    console.log(`Seeder written: ${outPath}`)
   } else {
-    console.log(`[skip] já existe: ${outPath}`)
+    console.log(`[skip] already exists: ${outPath}`)
   }
 }
 
@@ -246,7 +246,7 @@ try {
   } else if (command === 'seeder') {
     await cmdSeeder()
   } else {
-    console.error(`Comando desconhecido: ${command}. Usa migration, model ou seeder.`)
+    console.error(`Unknown command: ${command}. Use migration, model, or seeder.`)
     process.exit(1)
   }
 } catch (e) {

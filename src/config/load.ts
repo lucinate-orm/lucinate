@@ -11,8 +11,8 @@ export {
 } from './runtime-paths.js'
 
 /**
- * Ordem em `config/`: `database.js` e `database.json` antes de `database.ts` (útil quando o Node
- * carrega só JS; `database.ts` costuma ser fonte compilada para `build/config/database.js`).
+ * Order under `config/`: `database.js` and `database.json` before `database.ts` (useful when Node
+ * loads only JS; `database.ts` is usually the source compiled to `build/config/database.js`).
  */
 export function getDefaultDatabaseConfigFilenames(nodeEnv?: string): readonly string[] {
   const prod = (nodeEnv ?? process.env.NODE_ENV) === 'production'
@@ -22,9 +22,9 @@ export function getDefaultDatabaseConfigFilenames(nodeEnv?: string): readonly st
 }
 
 /**
- * Resolve o caminho por convenção: primeiro `build/config/database.js` (ex.: de `config/database.ts`),
- * depois, se existir `config/database.ts` e o `tsc` da raiz do repo emitir para `build/...` (cwd = raiz do pacote),
- * usa esse JS; por fim `APP_ROOT/config/database.{js,json,ts}`.
+ * Resolve path by convention: first `build/config/database.js` (e.g. from `config/database.ts`),
+ * then if `config/database.ts` exists and repo-root `tsc` emits to `build/...` (cwd = package root),
+ * use that JS; finally `APP_ROOT/config/database.{js,json,ts}`.
  */
 export function resolveDefaultDatabaseConfigPath(
   appRoot: string,
@@ -50,7 +50,7 @@ export function resolveDefaultDatabaseConfigPath(
 }
 
 /**
- * Carrega configuração de base de dados a partir de um ficheiro JSON ou de um módulo ESM/CJS (default export).
+ * Load database configuration from a JSON file or an ESM/CJS module (default export).
  */
 export async function loadDatabaseConfig(path: string): Promise<DatabaseConfig> {
   if (path.endsWith('.json')) {

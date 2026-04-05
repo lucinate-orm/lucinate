@@ -173,7 +173,7 @@ export class Database extends Macroable {
   /**
    * Returns an adapter lucid models
    *
-   * @param defaultConnectionForModels — quando os models não definem `static connection`, usa esta conexão
+   * @param defaultConnectionForModels — when models do not define `static connection`, use this connection
    */
   modelAdapter(defaultConnectionForModels?: string) {
     return new Adapter(this, defaultConnectionForModels)

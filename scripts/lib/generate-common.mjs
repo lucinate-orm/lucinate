@@ -8,12 +8,12 @@ import { resolveAppRootFromCandidates } from './resolve-app-root.mjs'
 import { resolveConfigPathFromEnv } from './config-path-from-env.mjs'
 
 /**
- * @param {string} pkgRoot raiz do pacote lucinate
+ * @param {string} pkgRoot lucinate package root
  */
 export async function loadBuildIndex(pkgRoot) {
   const indexJs = join(pkgRoot, 'build', 'index.js')
   if (!existsSync(indexJs)) {
-    throw new Error(`Build em falta: ${indexJs}\nCorre primeiro: npm run build`)
+    throw new Error(`Missing build: ${indexJs}\nRun npm run build first`)
   }
   return import(pathToFileURL(indexJs).href)
 }
@@ -24,13 +24,13 @@ export async function loadBuildIndex(pkgRoot) {
 export async function loadUtilsIndex(pkgRoot) {
   const utilsJs = join(pkgRoot, 'build', 'src', 'utils', 'index.js')
   if (!existsSync(utilsJs)) {
-    throw new Error(`Build em falta: ${utilsJs}`)
+    throw new Error(`Missing build: ${utilsJs}`)
   }
   return import(pathToFileURL(utilsJs).href)
 }
 
 /**
- * --app-root; APP_ROOT; senão cwd e depois ./src e ./app se existir config/database.*
+ * --app-root; APP_ROOT; otherwise cwd then ./src and ./app if config/database.* exists
  * @param {{ appRoot?: string }} opts
  */
 export function resolveAppRoot(opts) {
@@ -40,7 +40,7 @@ export function resolveAppRoot(opts) {
   return resolveAppRootFromCandidates(cwd)
 }
 
-/** Mesma ordem que migrate.mjs / seed.mjs. */
+/** Same resolution order as migrate.mjs / seed.mjs. */
 export function resolveConfigPathForGenerate(appRoot) {
   const fromEnv = resolveConfigPathFromEnv()
   if (fromEnv) return fromEnv
@@ -70,7 +70,7 @@ function resolvePath(appRoot, p) {
 }
 
 /**
- * Diretório de destino para migrations.
+ * Output directory for migrations.
  */
 export function resolveMigrationDir({ appRoot, config, connectionName, dirOverride, fallbackRelative = 'database/migrations' }) {
   if (dirOverride) return resolvePath(appRoot, dirOverride)
@@ -82,7 +82,7 @@ export function resolveMigrationDir({ appRoot, config, connectionName, dirOverri
 }
 
 /**
- * Diretório de destino para seeders.
+ * Output directory for seeders.
  */
 export function resolveSeederDir({ appRoot, config, connectionName, dirOverride, fallbackRelative = 'database/seeders' }) {
   if (dirOverride) return resolvePath(appRoot, dirOverride)
@@ -94,7 +94,7 @@ export function resolveSeederDir({ appRoot, config, connectionName, dirOverride,
 }
 
 /**
- * Diretório de destino para models.
+ * Output directory for models.
  */
 export function resolveModelDir({ appRoot, dirOverride }) {
   if (dirOverride) return resolvePath(appRoot, dirOverride)
@@ -103,7 +103,7 @@ export function resolveModelDir({ appRoot, dirOverride }) {
 }
 
 /**
- * @param {string} name input do utilizador (ex.: create_users_table, User)
+ * @param {string} name user input (e.g. create_users_table, User)
  */
 export function toSnakeCase(name) {
   return string.snakeCase(name.replace(/-/g, '_'))
@@ -114,7 +114,7 @@ export function toPascalCase(name) {
 }
 
 /**
- * Tabela por defeito a partir do nome do model (ex.: User -> users).
+ * Default table name from model class name (e.g. User -> users).
  */
 export function defaultTableName(className) {
   const base = string.snakeCase(className)
@@ -123,22 +123,22 @@ export function defaultTableName(className) {
 }
 
 /**
- * Nome de ficheiro seeder (ex.: User -> user_seeder.ts).
+ * Seeder file name (e.g. User -> user_seeder.ts).
  */
 export function seederFileName(name) {
   return `${toSnakeCase(name)}_seeder.ts`
 }
 
 /**
- * Nome de ficheiro model (ex.: User -> User.ts).
+ * Model file name (e.g. User -> User.ts).
  */
 export function modelFileName(className) {
   return `${className}.ts`
 }
 
 /**
- * Converte nome de tabela em snake (ex.: posts, user_profiles) para nome de classe de modelo.
- * Heurística simples (singulariza sobretudo o último segmento); nomes ambíguos podem exigir `make:model` à parte.
+ * Convert snake_case table name (e.g. posts, user_profiles) to model class name.
+ * Simple heuristic (singularizes mainly the last segment); ambiguous names may need a separate `make:model`.
  * @param {string} tableName
  */
 export function tableNameToModelClassName(tableName) {
@@ -169,10 +169,10 @@ function singularizeTableSegment(word) {
 }
 
 /**
- * Escreve ficheiro criando pastas. Se o ficheiro já existir, não altera e devolve `false`.
+ * Write file, creating directories. If the file already exists, does not change it and returns `false`.
  * @param {string} absPath
  * @param {string} content
- * @returns {Promise<boolean>} `true` se escreveu, `false` se ignorou (já existia)
+ * @returns {Promise<boolean>} `true` if written, `false` if skipped (already existed)
  */
 export async function writeGeneratedFile(absPath, content) {
   if (existsSync(absPath)) {

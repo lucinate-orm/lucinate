@@ -1,4 +1,4 @@
-/** Logger compatível com a connection (Pino-like). */
+/** Logger compatible with the connection (Pino-like). */
 export function createConsoleLogger() {
   const log =
     (level) =>

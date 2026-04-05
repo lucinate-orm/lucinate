@@ -1,28 +1,28 @@
 /**
- * Demo rápida: query builder + SQLite em memória (`sqlite3`).
- * Na pasta do pacote: `npm run build && npm run demo`
+ * Quick demo: query builder + in-memory SQLite (`sqlite3`).
+ * From the package folder: `npm run build && npm run demo`
  *
  * ---
- * Duas formas de obter um `Database`
+ * Two ways to get a `Database`
  *
- * **1) Como está abaixo — instanciar à mão**
+ * **1) As below — construct manually**
  * - `defineConfig(...)` + `new Database(config, logger, emitter)`.
- * - Útil para scripts mínimos, testes unitários ou quando queres controlar logger/emitter.
- * - **Não** regista o adapter por defeito dos models; para `BaseModel` usa `Model.useAdapter(db.modelAdapter())` ou `setDefaultModelAdapter(db.modelAdapter())`.
+ * - Handy for minimal scripts, unit tests, or when you want full control of logger/emitter.
+ * - Does **not** register the default model adapter; for `BaseModel` use `Model.useAdapter(db.modelAdapter())` or `setDefaultModelAdapter(db.modelAdapter())`.
  *
- * **2) `bootDatabase` — singleton + adapter por defeito**
- * - `await bootDatabase(...)` devolve sempre a mesma instância (exceto com `force`) e chama
- *   `setDefaultModelAdapter(db.modelAdapter())`, para `BaseModel.query()` / `.find()` funcionarem sem `useAdapter` manual.
- * - Opções (`BootDatabaseOptions`):
- *   - **`config`** — objeto já resolvido (`DatabaseConfig`). Não lê ficheiro. Ex.:
+ * **2) `bootDatabase` — singleton + default adapter**
+ * - `await bootDatabase(...)` returns the same instance (unless `force`) and calls
+ *   `setDefaultModelAdapter(db.modelAdapter())` so `BaseModel.query()` / `.find()` work without manual `useAdapter`.
+ * - Options (`BootDatabaseOptions`):
+ *   - **`config`** — resolved `DatabaseConfig` object. Does not read a file. E.g.
  *     `await bootDatabase({ config: defineConfig({ connection: 'default', connections: { ... } }) })`
- *   - **`appRoot`** — raiz da app (`config/`, `database/`, …). Se omitido: `APP_ROOT` ou candidatos a partir de `process.cwd()`.
- *   - **`configPath`** — caminho absoluto ou relativo ao ficheiro de config (sobrepõe a resolução por defeito).
- *   - **`logger`** / **`emitter`** — substituem o logger de consola e o `EventEmitter` por defeito.
- *   - **`force`** — `true`: fecha o singleton anterior, limpa o adapter por defeito e cria uma nova `Database` (útil em testes).
- * - Sem `config` nem `configPath` explícitos, carrega o config por convenção (`build/config/database.js`, `config/database.{js,json,ts}`, env `LUCINATE_CONFIG_PATH` / `LUCINATE_DATABASE_CONFIG`).
+ *   - **`appRoot`** — app root (`config/`, `database/`, …). If omitted: `APP_ROOT` or candidates from `process.cwd()`.
+ *   - **`configPath`** — absolute or relative path to config (overrides default resolution).
+ *   - **`logger`** / **`emitter`** — replace the default console logger and `EventEmitter`.
+ *   - **`force`** — `true`: tear down the previous singleton, clear the default adapter, and create a new `Database` (useful in tests).
+ * - Without explicit `config` or `configPath`, loads config by convention (`build/config/database.js`, `config/database.{js,json,ts}`, env `LUCINATE_CONFIG_PATH` / `LUCINATE_DATABASE_CONFIG`).
  *
- * Exemplo equivalente ao demo abaixo usando `bootDatabase` (comentado):
+ * Equivalent to the demo below using `bootDatabase` (commented):
  *
  * ```ts
  * import { bootDatabase, defineConfig } from '../index.js'
@@ -84,7 +84,7 @@ const db = new Database(config, createConsoleLogger(), new EventEmitter())
 
 const client = db.connection()
 const sql = client.query().from('sqlite_master').select('name').toQuery()
-console.log('SQL gerado (query builder):', sql)
+console.log('SQL from query builder:', sql)
 
 await db.manager.closeAll()
-console.log('OK — query builder compilou e gerou SQL.')
+console.log('OK — query builder compiled and produced SQL.')

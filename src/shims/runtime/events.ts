@@ -1,5 +1,5 @@
 /**
- * EventEmitter / Emitter — compatível com Node e Bun.
+ * EventEmitter / Emitter — compatible with Node and Bun.
  */
 import type { EventEmitter } from 'node:events'
 

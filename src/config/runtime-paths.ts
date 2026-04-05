@@ -1,8 +1,8 @@
 /**
- * Paths em config são relativos à raiz da app (ex.: `database/migrations`).
- * Em runtime o Node carrega o JS compilado em `build/database/migrations`.
+ * Config paths are relative to the app root (e.g. `database/migrations`).
+ * At runtime Node loads compiled JS under `build/database/migrations`.
  *
- * Mantém-se inalterado se já começar por `build/`, for absoluto ou `../` (ex.: examples).
+ * Unchanged if already under `build/`, absolute, or `../` (e.g. examples).
  */
 export function toRuntimeDatabasePath(path: string): string {
   const trimmed = path.trim()
@@ -27,9 +27,9 @@ export function toRuntimeDatabasePaths(paths: string[] | undefined): string[] {
 }
 
 /**
- * Caminho lógico na raiz da app (ex.: `database/migrations/foo`), sem prefixo `build/`.
- * Usado para o nome gravado na tabela de migrations e para comparar com histórico antigo
- * que ainda pode ter `build/database/...`.
+ * Logical path at app root (e.g. `database/migrations/foo`), without `build/` prefix.
+ * Used for names stored in the migrations table and to compare with older history
+ * that may still use `build/database/...`.
  */
 export function toLogicalDatabasePath(path: string): string {
   let s = path.trim().replace(/\\/g, '/')

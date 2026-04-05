@@ -1,7 +1,7 @@
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-/** Raiz do pacote lucinate (pasta que contém `build/`). */
+/** lucinate package root (directory containing `build/`). */
 export function getPackageRoot(fromImportMetaUrl) {
   return dirname(dirname(fileURLToPath(fromImportMetaUrl)))
 }

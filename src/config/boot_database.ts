@@ -1,5 +1,5 @@
 /*
- * lucinate — boot singleton de Database para apps sem IoC (HTTP, workers).
+ * lucinate — Database singleton bootstrap for apps without IoC (HTTP, workers).
  */
 import { EventEmitter } from 'node:events'
 import { existsSync } from 'node:fs'
@@ -14,15 +14,15 @@ import { loadDatabaseConfig, resolveDefaultDatabaseConfigPath } from './load.js'
 import { resolveAppRootFromCandidates } from './resolve_app_root.js'
 
 export type BootDatabaseOptions = {
-  /** Raiz da app (config/, database/, …). Se omitido: `APP_ROOT` ou candidatos a partir de `process.cwd()`. */
+  /** App root (config/, database/, …). If omitted: `APP_ROOT` or candidates from `process.cwd()`. */
   appRoot?: string
-  /** Config já resolvida — não lê ficheiro. */
+  /** Resolved config — does not read a file. */
   config?: DatabaseConfig
-  /** Caminho absoluto ou relativo para o ficheiro de config. */
+  /** Absolute or relative path to the config file. */
   configPath?: string
   logger?: Logger
   emitter?: Emitter
-  /** Fecha a instância anterior e cria outra (útil em testes). */
+  /** Close the previous instance and create another (useful in tests). */
   force?: boolean
 }
 
@@ -60,7 +60,7 @@ function resolveConfigFilePath(appRoot: string, options?: BootDatabaseOptions): 
 }
 
 /**
- * Carrega ou usa `options.config`, cria `Database` com logger/emitter por defeito.
+ * Load or use `options.config`, create `Database` with default logger/emitter.
  */
 async function createDatabaseInstance(options?: BootDatabaseOptions): Promise<Database> {
   const appRoot = resolveEffectiveAppRoot(options)
@@ -72,8 +72,8 @@ async function createDatabaseInstance(options?: BootDatabaseOptions): Promise<Da
     const configPath = resolveConfigFilePath(appRoot, options)
     if (!existsSync(configPath)) {
       throw new Error(
-        `Config não encontrado: ${configPath}\n` +
-          'Indica options.configPath, LUCINATE_CONFIG_PATH (ou LUCINATE_DATABASE_CONFIG), ou cria config/database.{ts,js,json} na raiz da app (compile para build/config/database.js quando aplicável).'
+        `Config not found: ${configPath}\n` +
+          'Set options.configPath, LUCINATE_CONFIG_PATH (or LUCINATE_DATABASE_CONFIG), or add config/database.{ts,js,json} at the app root (compile to build/config/database.js when applicable).'
       )
     }
     config = await loadDatabaseConfig(configPath)
@@ -85,11 +85,11 @@ async function createDatabaseInstance(options?: BootDatabaseOptions): Promise<Da
 }
 
 /**
- * Instância singleton de `Database` para a app. Chamadas repetidas (sem `force`) devolvem a mesma referência.
- * Chamadas concorrentes partilham a mesma Promise de arranque.
+ * Singleton `Database` instance for the app. Repeated calls (without `force`) return the same reference.
+ * Concurrent calls share the same boot Promise.
  *
- * Após criar (ou reutilizar) o singleton, regista `db.modelAdapter()` como adapter por defeito dos models
- * (`setDefaultModelAdapter`), para `BaseModel` funcionar sem `Model.useAdapter` explícito na app.
+ * After creating (or reusing) the singleton, registers `db.modelAdapter()` as the default model adapter
+ * (`setDefaultModelAdapter`) so `BaseModel` works without explicit `Model.useAdapter` in the app.
  */
 export async function bootDatabase(options?: BootDatabaseOptions): Promise<Database> {
   if (bootInFlight) {
@@ -120,7 +120,7 @@ export async function bootDatabase(options?: BootDatabaseOptions): Promise<Datab
 }
 
 /**
- * Fecha conexões e limpa o singleton (testes ou shutdown).
+ * Close connections and clear the singleton (tests or shutdown).
  */
 export async function resetBootDatabase(): Promise<void> {
   if (bootInFlight) {

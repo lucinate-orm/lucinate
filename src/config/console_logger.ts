@@ -1,5 +1,5 @@
 /*
- * lucinate — logger de consola para Database (paridade com scripts/lib/console-logger.mjs).
+ * lucinate — console logger for Database (parity with scripts/lib/console-logger.mjs).
  */
 import type { Logger } from '../shims/runtime/logger.js'
 

@@ -10,7 +10,7 @@
 import type { Logger as PinoLogger } from '../shims/runtime/logger.js'
 
 /**
- * Logger do Knex que delega para o logger injetado na connection.
+ * Knex logger that forwards to the logger injected into the connection.
  */
 export class Logger {
   warn = function (this: Logger, message: any) {
