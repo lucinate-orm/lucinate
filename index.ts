@@ -24,6 +24,7 @@ export { MigrationRunner, SchemaDumper } from './src/migration/main.js'
 export { BaseSeeder, SeedsRunner } from './src/seeders/main.js'
 export { OrmSchemaGenerator } from './src/orm/schema_generator/generator.js'
 export * from './src/orm/main.js'
+export * from './src/addons/index.js'
 export * from './src/schema/main.js'
 
 /** Relation types for `declare user: BelongsTo<typeof User>` etc. */
