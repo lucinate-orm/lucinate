@@ -14,6 +14,10 @@ import type { DeferCallback } from '../types/schema.js'
 import { QueryReporter } from '../query_reporter/index.js'
 import type { QueryClientContract } from '../types/database.js'
 import type { RawQueryBindings } from '../types/querybuilder.js'
+import { registerSchemaExtensions } from './extensions.js'
+export { setDefaultMorphKeyType } from './extensions.js'
+
+registerSchemaExtensions()
 
 /**
  * Exposes the API to define table schema using deferred database

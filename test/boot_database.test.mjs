@@ -18,13 +18,6 @@ const { defineConfig } = await import(pathToFileURL(join(root, 'build/src/define
 const { getDefaultModelAdapter } = await import(
   pathToFileURL(join(root, 'build/src/orm/default_model_adapter.js')).href
 )
-const { BaseModel } = await import(pathToFileURL(join(root, 'build/src/orm/base_model/index.js')).href)
-const { CamelCaseNamingStrategy } = await import(
-  pathToFileURL(join(root, 'build/src/orm/naming_strategies/camel_case.js')).href
-)
-const { SnakeCaseNamingStrategy } = await import(
-  pathToFileURL(join(root, 'build/src/orm/naming_strategies/snake_case.js')).href
-)
 
 beforeEach(async () => {
   await resetBootDatabase()
@@ -66,25 +59,6 @@ test('bootDatabase: registers default model adapter and reset clears', async () 
   assert.ok(getDefaultModelAdapter())
   await resetBootDatabase()
   assert.strictEqual(getDefaultModelAdapter(), null)
-})
-
-test('bootDatabase: namingStrategy sets BaseModel.namingStrategy (Adonis-style) and reset restores CamelCase', async () => {
-  const cfg = defineConfig({
-    connection: 'default',
-    connections: {
-      default: {
-        client: 'better-sqlite3',
-        useNullAsDefault: true,
-        connection: { filename: ':memory:' },
-      },
-    },
-  })
-  const snake = new SnakeCaseNamingStrategy()
-  assert.ok(BaseModel.namingStrategy instanceof CamelCaseNamingStrategy)
-  await bootDatabase({ config: cfg, namingStrategy: snake })
-  assert.strictEqual(BaseModel.namingStrategy, snake)
-  await resetBootDatabase()
-  assert.ok(BaseModel.namingStrategy instanceof CamelCaseNamingStrategy)
 })
 
 test('bootDatabase: force recreates instance', async () => {

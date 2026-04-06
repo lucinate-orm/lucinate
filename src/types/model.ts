@@ -8,6 +8,7 @@
  */
 
 import { type DateTime } from 'luxon'
+import type { Knex } from 'knex'
 import type Hooks from '@poppinss/hooks'
 import {
   type TransactionFn,
@@ -536,6 +537,54 @@ export interface ModelQueryBuilderContract<Model extends LucidModel, Result = In
    * of model instances
    */
   pojo<T>(): ModelQueryBuilderContract<Model, T>
+
+  /**
+   * Filters addon: apply constraints from a plain object using `Model.$filter` (or `FilterCtor`).
+   * Implemented on `ModelQueryBuilder`; relation query builders inherit a no-op stub.
+   */
+  filter(input?: ModelObject, FilterCtor?: any): this
+
+  /**
+   * Join relations addon: perform SQL join for `belongsTo` / `hasOne`.
+   * Implemented on `ModelQueryBuilder`; relation query builders inherit a no-op stub.
+   */
+  joinRelation(
+    relationName: string,
+    options?: { joinType?: 'inner' | 'left'; selectRelated?: boolean }
+  ): this
+
+  /**
+   * Join relations addon: `LEFT JOIN` for `belongsTo` / `hasOne` (alias of `joinRelation` with `joinType: 'left'`).
+   * Implemented on `ModelQueryBuilder`; relation query builders inherit a no-op stub.
+   */
+  leftJoinRelation(
+    relationName: string,
+    options?: { joinType?: 'inner' | 'left'; selectRelated?: boolean }
+  ): this
+
+  /**
+   * select-related addon: join + aliased columns + hydrate related models (Django-style `select_related`).
+   * Use the `SelectRelated` mixin on the model for fetch/find hooks; the `.selectRelated()` macro loads with the addon module.
+   */
+  selectRelated(
+    path: string,
+    options?: {
+      joinType?: 'inner' | 'left'
+      sideload?: boolean
+      columns?: '*' | string[]
+    }
+  ): this
+
+  /**
+   * SQL that would run for a select, including `before:fetch` hooks (soft deletes, etc.).
+   * Sync `toSQL()` does not run model hooks — it only applies `applyWhere()`.
+   */
+  toSQLForExecution(): Promise<Knex.Sql>
+
+  /**
+   * Same as {@link ModelQueryBuilderContract.toSQLForExecution} but returns the query string.
+   */
+  toQueryForExecution(): Promise<string>
 }
 
 /**
@@ -923,7 +972,9 @@ export interface LucidModel {
     this: Model,
     name: Name
   ): NonNullable<InstanceType<Model>[Name]> extends ModelRelations<LucidModel, LucidModel>
-    ? NonNullable<InstanceType<Model>[Name]>['__relationClient']['relation']
+    ? NonNullable<InstanceType<Model>[Name]>['__relationClient'] extends { relation: infer Relation }
+      ? Relation
+      : RelationshipsContract
     : RelationshipsContract
   $getRelation<Model extends LucidModel>(this: Model, name: string): RelationshipsContract
 
@@ -1197,6 +1248,15 @@ export interface LucidModel {
   query<Model extends LucidModel, Result = InstanceType<Model>>(
     this: Model,
     options?: ModelAdapterOptions
+  ): ModelQueryBuilderContract<Model, Result>
+
+  /**
+   * Filters addon: `query().filter(input)` shortcut (implemented on `BaseModel`).
+   */
+  filter<Model extends LucidModel, Result = InstanceType<Model>>(
+    this: Model,
+    input?: ModelObject,
+    FilterCtor?: any
   ): ModelQueryBuilderContract<Model, Result>
 
   /**

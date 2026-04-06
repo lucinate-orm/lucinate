@@ -615,6 +615,11 @@ export type ConnectionConfig =
 export type DatabaseConfig = {
   connection: string
   prettyPrintDebugQueries?: boolean
+  /**
+   * Default for query profiling / `db:query` when a pool omits `debug`.
+   * Per-connection `connections.*.debug` still wins.
+   */
+  debug?: boolean
   connections: { [key: string]: ConnectionConfig }
 }
 

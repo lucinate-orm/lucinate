@@ -286,6 +286,15 @@ class BaseModelImpl implements LucidRow {
   }
 
   /**
+   * Filters addon: delegates to `query().filter`. When the filters addon macro is
+   * not loaded, this is a no-op chain on the builder.
+   */
+  static filter(input?: ModelObject, FilterCtor?: any): any {
+    this.boot()
+    return this.query().filter(input, FilterCtor)
+  }
+
+  /**
    * Returns the model query instance for the given model
    */
   static transaction<T>(
@@ -1510,6 +1519,18 @@ class BaseModelImpl implements LucidRow {
    */
   $isLocal: boolean = true
 
+  /**
+   * Controls how `$extras` (aggregates, join aliases, raw selects, etc.) appear in
+   * {@link BaseModel.serialize} / {@link BaseModel.toJSON}.
+   *
+   * **Default:** keys from `$extras` are **included** (merged at the top level of the
+   * serialized object).
+   *
+   * Set to **`false`** to **exclude** `$extras` from the serialized output. Any other value
+   * keeps the default inclusion behavior:
+   * - **`true` or `undefined`** — merge `{ ...this.$extras }` at the top level.
+   * - **function** — merge the returned plain object (custom shape); use instead of the default spread.
+   */
   declare serializeExtras: boolean | (() => Record<string, any>)
 
   /**
@@ -2333,21 +2354,24 @@ class BaseModelImpl implements LucidRow {
   }
 
   /**
-   * Converting model to it's JSON representation
+   * Converting model to it's JSON representation.
+   * By default, `$extras` are merged into the result; set `serializeExtras = false` to omit them.
    */
   serialize(cherryPick?: CherryPick) {
-    let extras: any = null
-    if (this.serializeExtras === true) {
-      extras = { meta: this.$extras }
+    let extras: Record<string, any> | null = null
+    if (this.serializeExtras === false) {
+      extras = null
     } else if (typeof this.serializeExtras === 'function') {
       extras = this.serializeExtras()
+    } else {
+      extras = { ...this.$extras }
     }
 
     return {
       ...this.serializeAttributes(cherryPick?.fields, false),
       ...this.serializeRelations(cherryPick?.relations, false),
       ...this.serializeComputed(cherryPick?.fields),
-      ...extras,
+      ...(extras || {}),
     }
   }
 

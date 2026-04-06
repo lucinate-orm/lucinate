@@ -64,3 +64,45 @@ test('extras: direct write updates $extras when key already exists', () => {
   assert.equal(row.$extras.total, 10)
   assert.equal(row.total, 10)
 })
+
+test('extras: serialize / toJSON merges $extras at top level by default', () => {
+  class Demo extends BaseModel {
+    static override table = 'demos'
+    declare id: number
+    declare name: string
+  }
+
+  column({ isPrimary: true })(Demo.prototype, 'id')
+  column()(Demo.prototype, 'name')
+
+  const row = new Demo()
+  row.$consumeAdapterResult({
+    id: 1,
+    name: 'one',
+    partner_type_name: 'Type A',
+  })
+
+  const json = row.serialize() as Record<string, unknown>
+  assert.equal(json.id, 1)
+  assert.equal(json.name, 'one')
+  assert.equal(json.partner_type_name, 'Type A')
+  assert.equal('meta' in json, false)
+  assert.deepEqual(row.toJSON(), json)
+})
+
+test('extras: serializeExtras false omits $extras from JSON', () => {
+  class Demo extends BaseModel {
+    static override table = 'demos'
+    override serializeExtras = false as false
+    declare id: number
+  }
+
+  column({ isPrimary: true })(Demo.prototype, 'id')
+
+  const row = new Demo()
+  row.$consumeAdapterResult({ id: 1, extra_col: 'x' })
+
+  const json = row.serialize() as Record<string, unknown>
+  assert.equal(json.id, 1)
+  assert.equal(json.extra_col, undefined)
+})

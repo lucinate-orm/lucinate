@@ -48,7 +48,7 @@ export type ExtractModelRelations<Model extends LucidRow> = {
  * upon the relationship type
  */
 export type GetRelationModelInstance<Relation extends ModelRelations<LucidModel, LucidModel>> =
-  Relation['__opaque_type'] extends 'hasOne' | 'belongsTo'
+  Relation['__opaque_type'] extends 'hasOne' | 'belongsTo' | 'morphTo' | 'morphOne'
     ? Relation['__relationInstance']
     : Relation['__relationInstance'][]
 
@@ -168,7 +168,15 @@ export type HasManyThroughDecorator = <RelatedModel extends LucidModel>(
  *
  */
 export type ModelRelationTypes = {
-  readonly __opaque_type: 'hasOne' | 'hasMany' | 'belongsTo' | 'manyToMany' | 'hasManyThrough'
+  readonly __opaque_type:
+    | 'hasOne'
+    | 'hasMany'
+    | 'belongsTo'
+    | 'manyToMany'
+    | 'hasManyThrough'
+    | 'morphTo'
+    | 'morphOne'
+    | 'morphMany'
 }
 
 /**
@@ -256,6 +264,51 @@ export type HasManyThrough<
 }
 
 /**
+ * Opaque type for morph to relationship
+ */
+export type MorphTo<
+  RelatedModel extends LucidModel,
+  ParentModel extends LucidModel = LucidModel,
+> = InstanceType<RelatedModel> & {
+  readonly __opaque_type: 'morphTo'
+  __relationModel: RelatedModel
+  __relationInstance: InstanceType<RelatedModel>
+  __relationClient: MorphToClientContract<RelatedModel, ParentModel>
+  __relationBuilder: RelationQueryBuilderContract<RelatedModel, any>
+  __relationSubQuery: RelationSubQueryBuilderContract<RelatedModel>
+}
+
+/**
+ * Polymorphic morphOne — same runtime/query client shape as hasOne.
+ */
+export type MorphOne<
+  RelatedModel extends LucidModel,
+  ParentModel extends LucidModel = LucidModel,
+> = InstanceType<RelatedModel> & {
+  readonly __opaque_type: 'morphOne'
+  __relationModel: RelatedModel
+  __relationInstance: InstanceType<RelatedModel>
+  __relationClient: HasOneClientContract<HasOneRelationContract<ParentModel, RelatedModel>, RelatedModel>
+  __relationBuilder: RelationQueryBuilderContract<RelatedModel, any>
+  __relationSubQuery: RelationSubQueryBuilderContract<RelatedModel>
+}
+
+/**
+ * Polymorphic morphMany — same runtime/query client shape as hasMany.
+ */
+export type MorphMany<
+  RelatedModel extends LucidModel,
+  ParentModel extends LucidModel = LucidModel,
+> = InstanceType<RelatedModel>[] & {
+  readonly __opaque_type: 'morphMany'
+  __relationModel: RelatedModel
+  __relationInstance: InstanceType<RelatedModel>
+  __relationClient: HasManyClientContract<HasManyRelationContract<ParentModel, RelatedModel>, RelatedModel>
+  __relationBuilder: HasManyQueryBuilderContract<RelatedModel, any>
+  __relationSubQuery: RelationSubQueryBuilderContract<RelatedModel>
+}
+
+/**
  * These exists on the models directly as a relationship. The idea
  * is to distinguish relationship properties from other model
  * properties.
@@ -269,6 +322,9 @@ export type ModelRelations<
   | BelongsTo<RelatedModel, ParentModel>
   | ManyToMany<RelatedModel, ParentModel>
   | HasManyThrough<RelatedModel, ParentModel>
+  | MorphTo<RelatedModel, ParentModel>
+  | MorphOne<RelatedModel, ParentModel>
+  | MorphMany<RelatedModel, ParentModel>
 
 /**
  * ------------------------------------------------------
@@ -712,6 +768,21 @@ export interface BelongsToClientContract<
   /**
    * Dissociate related instance
    */
+  dissociate(): Promise<void>
+}
+
+/**
+ * Query client for morphTo relationship.
+ * Since the target model is dynamic, query can return null when unresolved.
+ */
+export interface MorphToClientContract<
+  RelatedModel extends LucidModel,
+  ParentModel extends LucidModel = LucidModel,
+> {
+  query<Result = InstanceType<RelatedModel>>():
+    | RelationQueryBuilderContract<RelatedModel, Result>
+    | null
+  associate(related: InstanceType<RelatedModel>): Promise<void>
   dissociate(): Promise<void>
 }
 

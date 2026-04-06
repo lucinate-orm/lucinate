@@ -35,7 +35,7 @@ Same mental model (models, relations, migrations); normal library packaging and 
 ## Getting started
 
 1. Add **`config/database.ts`** with `defineConfig`. Use **logical** paths for `migrations.paths` and `seeders.paths` (e.g. `database/migrations`, `database/seeders`). At runtime they resolve under **`build/`** (compiled JS).
-2. Add **`tsconfig.db.json`** with `outDir: build`, `module` / `moduleResolution` for Node (`NodeNext`), and `include` for `config/database.ts`, `database/**/*.ts`, `src/models/**/*.ts`. **`migrate` / `seed` run `tsc -p tsconfig.db.json` automatically** when that file exists (set `LUCINATE_DATABASE_SKIP_DB_BUILD=1` to skip).
+2. Add **`tsconfig.db.json`** with `outDir: build`, `module` / `moduleResolution` for Node (`NodeNext`), and `include` for `config/database.ts`, `database/**/*.ts`, `src/models/**/*.ts`. **`make:*` / `migrate` / `seed` run `tsc -p tsconfig.db.json` automatically** when that file exists (set `LUCINATE_DATABASE_SKIP_DB_BUILD=1` to skip).
 3. For path aliases (`@/models/...`), run **`tsc-alias`** after `tsc` if installed (the package’s compile step tries to invoke it).
 4. Run commands from the **project root** (`config/`, `database/`). `cwd` or **`APP_ROOT`** / **`ROOT_PATH`** usually suffice; use **`--app-root`** only when you must override.
 
@@ -76,8 +76,24 @@ npx lucinate --help
 |-----|------|
 | `APP_ROOT` | App root when not `cwd` |
 | `LUCINATE_CONFIG_PATH` | Path to database config |
-| `LUCINATE_DATABASE_SKIP_DB_BUILD=1` | Skip automatic `tsc` before migrate/seed |
+| `LUCINATE_DATABASE_SKIP_DB_BUILD=1` | Skip automatic `tsc` before make/migrate/seed |
 | `LUCINATE_SEED_FILE` | Same as `seed --file` |
+
+### TypeScript checks during CLI generation
+
+If your project has `tsconfig.db.json`, generator commands like
+`make:migration -m -s` can fail because model/seeder files are typechecked
+before stubs are generated.
+
+Common example:
+
+- `TS4114` with `noImplicitOverride: true` (missing `override` in classes extending `BaseModel` / `BaseSeeder`).
+
+Bypass options:
+
+- **Temporary:** run command with build skip
+  - `LUCINATE_DATABASE_SKIP_DB_BUILD=1 bunx lucinate make:migration ...`
+- **Structural:** keep a dedicated `tsconfig.db.json` aligned for DB artifacts (or run `build:db` manually before CLI commands).
 
 ---
 
@@ -102,6 +118,106 @@ Logical paths map to **`build/...`** at runtime. Migration rows store **logical*
 
 ---
 
+## Addons (opt-in)
+
+`lucinate` now includes first-party addons. They are opt-in and do not change default ORM behavior unless you apply them.
+Macros are auto-registered when addon modules are imported.
+
+### `HasUuids` (UUID v7 default)
+
+```ts
+import { BaseModel } from 'lucinate'
+import { compose } from '@poppinss/utils'
+import { HasUuids } from 'lucinate'
+
+class User extends compose(BaseModel, HasUuids) {
+  static uniqueIds() {
+    return ['id'] // optional, default is ['id']
+  }
+}
+```
+
+### `HasUlids` (monotonic default)
+
+```ts
+import { BaseModel } from 'lucinate'
+import { compose } from '@poppinss/utils'
+import { HasUlids } from 'lucinate'
+
+class Order extends compose(BaseModel, HasUlids) {
+  static uniqueIds() {
+    return ['id'] // optional, default is ['id']
+  }
+}
+```
+
+### `SoftDeletes`
+
+```ts
+import { BaseModel } from 'lucinate'
+import { compose } from '@poppinss/utils'
+import { SoftDeletes } from 'lucinate'
+
+class Post extends compose(BaseModel, SoftDeletes) {}
+
+await Post.query().withTrashed()
+await Post.query().onlyTrashed()
+await Post.query().restore()
+await Post.query().forceDelete()
+```
+
+### `Filterable`
+
+```ts
+import { BaseModel } from 'lucinate'
+import { compose } from '@poppinss/utils'
+import { Filterable, BaseFilter } from 'lucinate'
+
+class UserFilter extends BaseFilter {
+  name(value: string) {
+    this['query'].where('name', 'like', `%${value}%`)
+  }
+}
+
+class User extends compose(BaseModel, Filterable) {
+  static $filter = UserFilter
+}
+
+await User.filter({ name: 'marcio' }).exec()
+```
+
+### `joinRelation` (MVP)
+
+```ts
+await User.query().joinRelation('profile')
+```
+
+Current MVP supports `belongsTo` and `hasOne`.
+
+### `morph-relations` (MVP)
+
+```ts
+import { BaseModel } from 'lucinate'
+import { column } from 'lucinate/orm'
+import { morphOne, morphMany, morphTo } from 'lucinate'
+
+class Image extends BaseModel {
+  @column() declare imageableType: string
+  @column() declare imageableId: string
+  @morphTo({ name: 'imageable' })
+  declare imageable: any
+}
+
+class Post extends BaseModel {
+  @morphOne(() => Image, { name: 'imageable' })
+  declare image: Image | null
+}
+```
+
+MVP supports `morphOne`, `morphMany`, and `morphTo` with `related(...).query()/associate()/dissociate()`.
+
+---
+
 ## TypeScript
 
 Use a dedicated **`tsconfig.db.json`** to emit JS for DB code while the main app `tsconfig` may use `noEmit` / bundler mode. With **`NodeNext`**, use **`.js`** extensions in source imports for local files (they match emitted output).
@@ -117,6 +233,8 @@ await bootDatabase()
 ```
 
 Resolves app root like the CLI, loads `config/database.*` (or `LUCINATE_CONFIG_PATH`), returns a **singleton** `Database`. Registers **`db.modelAdapter()`** as the default for models. Options: `appRoot`, `config`, `configPath`, `logger`, `emitter`, `force`. Use **`resetBootDatabase()`** to tear down (e.g. tests).
+
+**Naming strategy** is not configured here. Set the global default with **`BaseModel.namingStrategy`** (e.g. `BaseModel.namingStrategy = new SnakeCaseNamingStrategy()` from `lucinate/orm`), ideally on an app base model file that runs **before** other models are imported, or use **`static namingStrategy`** on a specific model class.
 
 ---
 
@@ -139,6 +257,30 @@ import {
 ```
 
 Subpaths (see `package.json` → `exports`): `lucinate/orm`, `lucinate/schema`, `lucinate/migration`, `lucinate/config/load`, `lucinate/config/boot`. Relation types: `import type { BelongsTo } from 'lucinate'`.
+
+---
+
+## Schema helpers (Laravel-like)
+
+The schema builder exposes convenience helpers:
+
+```ts
+this.schema.createTable('comments', (table) => {
+  table.uuid('id').primary()
+  table.softDeletes() // deleted_at nullable timestamp
+})
+
+this.schema.createTable('images', (table) => {
+  table.ulid('id').primary()
+})
+
+this.schema.createTable('attachments', (table) => {
+  table.morphs('attachable')
+  // or: numericMorphs / uuidMorphs / ulidMorphs
+})
+```
+
+Helpers attach to the same Knex module used for connections (`knex/knex`), so they apply to migration/schema queries at runtime.
 
 ---
 
