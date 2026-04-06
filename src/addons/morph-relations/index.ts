@@ -3,10 +3,12 @@ import { BaseModel } from '../../orm/base_model/index.js'
 import { Preloader } from '../../orm/preloader/index.js'
 import type { LucidModel, LucidRow, OptionalTypedDecorator } from '../../types/model.js'
 import type {
+  MorphMany,
+  MorphOne,
   MorphTo as MorphToOpaque,
 } from '../../types/relations.js'
 
-type AnyModelCtor = new (...args: any[]) => any
+export type { MorphMany, MorphOne } from '../../types/relations.js'
 
 export type ModelFactory = () => LucidModel
 export type MorphMap = Record<string, ModelFactory>
@@ -31,14 +33,12 @@ export type MorphToOptions<TMap extends MorphMap = MorphMap> = {
   serializeAs?: string | null
 }
 
-export type MorphOne<RelatedModel extends AnyModelCtor> = InstanceType<RelatedModel> | null
-export type MorphMany<RelatedModel extends AnyModelCtor> = InstanceType<RelatedModel>[]
 export type MorphTo<RelatedModel extends LucidModel> = MorphToOpaque<RelatedModel> | null
-export type MorphOneDecorator = <RelatedModel extends AnyModelCtor>(
+export type MorphOneDecorator = <RelatedModel extends LucidModel>(
   model: () => RelatedModel,
   options: MorphOneManyOptions
-) => OptionalTypedDecorator<MorphOne<RelatedModel>>
-export type MorphManyDecorator = <RelatedModel extends AnyModelCtor>(
+) => OptionalTypedDecorator<MorphOne<RelatedModel> | null>
+export type MorphManyDecorator = <RelatedModel extends LucidModel>(
   model: () => RelatedModel,
   options: MorphOneManyOptions
 ) => OptionalTypedDecorator<MorphMany<RelatedModel>>

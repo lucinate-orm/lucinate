@@ -48,7 +48,7 @@ export type ExtractModelRelations<Model extends LucidRow> = {
  * upon the relationship type
  */
 export type GetRelationModelInstance<Relation extends ModelRelations<LucidModel, LucidModel>> =
-  Relation['__opaque_type'] extends 'hasOne' | 'belongsTo' | 'morphTo'
+  Relation['__opaque_type'] extends 'hasOne' | 'belongsTo' | 'morphTo' | 'morphOne'
     ? Relation['__relationInstance']
     : Relation['__relationInstance'][]
 
@@ -168,7 +168,15 @@ export type HasManyThroughDecorator = <RelatedModel extends LucidModel>(
  *
  */
 export type ModelRelationTypes = {
-  readonly __opaque_type: 'hasOne' | 'hasMany' | 'belongsTo' | 'manyToMany' | 'hasManyThrough' | 'morphTo'
+  readonly __opaque_type:
+    | 'hasOne'
+    | 'hasMany'
+    | 'belongsTo'
+    | 'manyToMany'
+    | 'hasManyThrough'
+    | 'morphTo'
+    | 'morphOne'
+    | 'morphMany'
 }
 
 /**
@@ -271,6 +279,36 @@ export type MorphTo<
 }
 
 /**
+ * Polymorphic morphOne — same runtime/query client shape as hasOne.
+ */
+export type MorphOne<
+  RelatedModel extends LucidModel,
+  ParentModel extends LucidModel = LucidModel,
+> = InstanceType<RelatedModel> & {
+  readonly __opaque_type: 'morphOne'
+  __relationModel: RelatedModel
+  __relationInstance: InstanceType<RelatedModel>
+  __relationClient: HasOneClientContract<HasOneRelationContract<ParentModel, RelatedModel>, RelatedModel>
+  __relationBuilder: RelationQueryBuilderContract<RelatedModel, any>
+  __relationSubQuery: RelationSubQueryBuilderContract<RelatedModel>
+}
+
+/**
+ * Polymorphic morphMany — same runtime/query client shape as hasMany.
+ */
+export type MorphMany<
+  RelatedModel extends LucidModel,
+  ParentModel extends LucidModel = LucidModel,
+> = InstanceType<RelatedModel>[] & {
+  readonly __opaque_type: 'morphMany'
+  __relationModel: RelatedModel
+  __relationInstance: InstanceType<RelatedModel>
+  __relationClient: HasManyClientContract<HasManyRelationContract<ParentModel, RelatedModel>, RelatedModel>
+  __relationBuilder: HasManyQueryBuilderContract<RelatedModel, any>
+  __relationSubQuery: RelationSubQueryBuilderContract<RelatedModel>
+}
+
+/**
  * These exists on the models directly as a relationship. The idea
  * is to distinguish relationship properties from other model
  * properties.
@@ -285,6 +323,8 @@ export type ModelRelations<
   | ManyToMany<RelatedModel, ParentModel>
   | HasManyThrough<RelatedModel, ParentModel>
   | MorphTo<RelatedModel, ParentModel>
+  | MorphOne<RelatedModel, ParentModel>
+  | MorphMany<RelatedModel, ParentModel>
 
 /**
  * ------------------------------------------------------

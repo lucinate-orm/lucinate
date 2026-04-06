@@ -34,5 +34,8 @@ export type {
   HasManyThrough,
   HasOne,
   ManyToMany,
+  MorphMany,
+  MorphOne,
+  MorphTo,
 } from './src/types/relations.js'
 export type { LucidRow as ModelRow } from './src/types/model.js'
