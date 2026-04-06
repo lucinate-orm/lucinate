@@ -76,7 +76,9 @@ export class HasManyThrough implements HasManyThroughRelationContract<LucidModel
     this.onQueryHook = this.options.onQuery
     this.throughModel = this.options.throughModel
     this.serializeAs =
-      this.options.serializeAs === undefined ? this.relationName : this.options.serializeAs
+      this.options.serializeAs === undefined
+        ? this.model.namingStrategy.serializedName(this.model, this.relationName)
+        : this.options.serializeAs
     this.meta = this.options.meta
   }
 
