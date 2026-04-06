@@ -19,6 +19,16 @@ function getDeletedAtColumn(Model: any): string {
   return Model.$softDeletes?.deletedAtColumn ?? 'deletedAt'
 }
 
+/**
+ * Coluna qualificada `tabela.coluna` no SQL (ex.: `partners.deleted_at`).
+ * Evita ambiguidade em JOINs quando outra tabela também tem a mesma coluna.
+ */
+function getQualifiedDeletedAtColumn(Model: any): string {
+  const attr = getDeletedAtColumn(Model)
+  const columnName = Model.$keys.attributesToColumns.resolve(attr)
+  return `${Model.table}.${columnName}`
+}
+
 function getMode(builder: any): SoftDeleteMode {
   return builder[SOFT_DELETE_MODE]
 }
@@ -28,7 +38,7 @@ function setMode(builder: any, mode: SoftDeleteMode) {
 }
 
 function applySoftDeleteScope(builder: any, Model: any) {
-  const deletedAtColumn = getDeletedAtColumn(Model)
+  const qualifiedDeletedAt = getQualifiedDeletedAtColumn(Model)
   const mode = getMode(builder)
 
   if (mode === 'with') {
@@ -36,11 +46,11 @@ function applySoftDeleteScope(builder: any, Model: any) {
   }
 
   if (mode === 'only') {
-    builder.whereNotNull(deletedAtColumn)
+    builder.whereNotNull(qualifiedDeletedAt)
     return
   }
 
-  builder.whereNull(deletedAtColumn)
+  builder.whereNull(qualifiedDeletedAt)
 }
 
 function ensureSoftDeleteMacros(ModelQueryBuilder: any) {
@@ -65,7 +75,8 @@ function ensureSoftDeleteMacros(ModelQueryBuilder: any) {
 
   ModelQueryBuilder.macro('restore', async function (this: any) {
     const deletedAtColumn = getDeletedAtColumn(this.model)
-    return this.withTrashed().whereNotNull(deletedAtColumn).update({ [deletedAtColumn]: null })
+    const qualifiedDeletedAt = getQualifiedDeletedAtColumn(this.model)
+    return this.withTrashed().whereNotNull(qualifiedDeletedAt).update({ [deletedAtColumn]: null })
   })
 
   ModelQueryBuilder.macro('forceDelete', async function (this: any) {
