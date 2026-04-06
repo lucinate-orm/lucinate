@@ -6,10 +6,8 @@ export type JoinType = "inner" | "left";
 export type JoinRelatedOptions = {
     joinType?: JoinType;
     /**
-     * When `true` (default), appends `select(\`${relatedTable}.*\`)` so joined rows
-     * bring related columns without an extra `.select()`.
-     * Set to `false` if you only want the join and will list columns yourself (Knex merges
-     * multiple `.select()` calls, so the default would otherwise duplicate coverage).
+     * When `true`, appends `select(\`${relatedTable}.*\`)` for the related table.
+     * Default is `false`: only the JOIN is applied; add `.select(...)` yourself as needed.
      */
     selectRelated?: boolean;
 };
@@ -51,7 +49,7 @@ function applyJoinRelation(
     const method = options.joinType === "left" ? "leftJoin" : "innerJoin";
 
     builder[method](join.table, join.left, join.right);
-    if (options.selectRelated) {
+    if (options.selectRelated === true) {
         builder.select(`${join.relatedTable}.*`);
     }
     return builder;
