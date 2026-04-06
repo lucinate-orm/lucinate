@@ -923,7 +923,9 @@ export interface LucidModel {
     this: Model,
     name: Name
   ): NonNullable<InstanceType<Model>[Name]> extends ModelRelations<LucidModel, LucidModel>
-    ? NonNullable<InstanceType<Model>[Name]>['__relationClient']['relation']
+    ? NonNullable<InstanceType<Model>[Name]>['__relationClient'] extends { relation: infer Relation }
+      ? Relation
+      : RelationshipsContract
     : RelationshipsContract
   $getRelation<Model extends LucidModel>(this: Model, name: string): RelationshipsContract
 
