@@ -27,6 +27,10 @@ export class HasOne implements HasOneRelationContract<LucidModel, LucidModel> {
   readonly type = 'hasOne'
 
   booted: boolean = false
+
+  /**
+   * The key name for serializing the relationship
+   */
   serializeAs
 
   /**
