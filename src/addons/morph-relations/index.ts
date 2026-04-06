@@ -123,6 +123,10 @@ function patchRelationHydration(Model: LucidModel, relationName: string, morphTy
     }
   }
   ;(relation as any).__morphPatched = true
+  ;(relation as any).meta = {
+    ...(relation as any).meta,
+    morphSelectRelated: { morphTypeKey, morphValue: value },
+  }
 }
 
 export const morphOne: MorphOneDecorator = (model, options) => {
