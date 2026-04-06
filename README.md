@@ -35,9 +35,9 @@ Same mental model (models, relations, migrations); normal library packaging and 
 ## Getting started
 
 1. Add **`config/database.ts`** with `defineConfig`. Use **logical** paths for `migrations.paths` and `seeders.paths` (e.g. `database/migrations`, `database/seeders`). At runtime they resolve under **`build/`** (compiled JS).
-2. Add **`tsconfig.db.json`** with `outDir: build`, `module` / `moduleResolution` for Node (`NodeNext`), and `include` for `config/database.ts`, `database/**/*.ts`, `src/models/**/*.ts`. **`make:*` / `migrate` / `seed` run `tsc -p tsconfig.db.json` automatically** when that file exists (set `LUCINATE_DATABASE_SKIP_DB_BUILD=1` to skip).
+2. Add **`tsconfig.db.json`** with `outDir: build`, `module` / `moduleResolution` for Node (`NodeNext`), and `include` for `config/database.ts`, `database/**/*.ts`, `src/models/**/*.ts`. **`make:*` / `migrate` / `seed` run `tsc -p tsconfig.db.json` automatically** when that file exists; use **`--skip-build`** on those commands to skip the automatic compile.
 3. For path aliases (`@/models/...`), run **`tsc-alias`** after `tsc` if installed (the package’s compile step tries to invoke it).
-4. Run commands from the **project root** (`config/`, `database/`). `cwd` or **`APP_ROOT`** / **`ROOT_PATH`** usually suffice; use **`--app-root`** only when you must override.
+4. Run commands from the **project root**: layout should include **`config/`** (at least `database.ts`) and **`database/migrations/`**, **`database/seeders/`**. The CLI uses **`process.cwd()`** as the app root — `cd` into that directory before running `lucinate`.
 
 ```bash
 npx lucinate migrate
@@ -66,18 +66,13 @@ npx lucinate --help
 
 **`make:migration`:** `--create` / `--alter` (or infer from name, e.g. `create_posts_table`); **`-m` / `--with-model`**, **`-s` / `--with-seeder`**; **`--dir`**. Generators **never overwrite** existing files (`[skip]`).
 
-**`migrate` / `migrate:down`:** `--down` (or use `migrate:down`); `--batch` / `--step`; `--dry-run`; `--disable-locks`.
+**`migrate` / `migrate:down`:** `--down` (or use `migrate:down`); `--batch` / `--step`; `--dry-run`; `--disable-locks`; **`--skip-build`**.
 
-**`seed`:** `-f` / `--file <name>` (repeatable), or **`LUCINATE_SEED_FILE`** (comma-separated).
+**`seed`:** `-f` / `--file <name>` (repeatable).
 
-**Common:** **`--app-root`**, **`--config` / `-c`**. Config path: **`LUCINATE_CONFIG_PATH`** (preferred) or **`LUCINATE_DATABASE_CONFIG`** (legacy).
+**`make:*` / `migrate` / `seed`:** **`--skip-build`** — skip automatic `tsc -p tsconfig.db.json` when that file exists (e.g. you already built or use a watcher).
 
-| Env | Role |
-|-----|------|
-| `APP_ROOT` | App root when not `cwd` |
-| `LUCINATE_CONFIG_PATH` | Path to database config |
-| `LUCINATE_DATABASE_SKIP_DB_BUILD=1` | Skip automatic `tsc` before make/migrate/seed |
-| `LUCINATE_SEED_FILE` | Same as `seed --file` |
+Database config is always resolved from **`config/database.ts`** at the project root (or compiled **`build/config/database.js`**). No env vars or `--config` override for the default path.
 
 ### TypeScript checks during CLI generation
 
@@ -91,8 +86,7 @@ Common example:
 
 Bypass options:
 
-- **Temporary:** run command with build skip
-  - `LUCINATE_DATABASE_SKIP_DB_BUILD=1 bunx lucinate make:migration ...`
+- **Temporary:** run with **`--skip-build`** (e.g. `bunx lucinate make:migration my_table --skip-build`).
 - **Structural:** keep a dedicated `tsconfig.db.json` aligned for DB artifacts (or run `build:db` manually before CLI commands).
 
 ---
@@ -115,6 +109,97 @@ Logical paths map to **`build/...`** at runtime. Migration rows store **logical*
 - **`BaseSeeder`** receives `client`, `db`, and the connection name.
 - During `run()`, model adapters match that connection — you usually **don’t** need `Model.useAdapter(this.db.modelAdapter())` in every seeder.
 - **`this.connection('name')`** switches to another declared connection; **`this.connection()`** restores the seed connection.
+
+---
+
+## Password hashing (not included)
+
+`lucinate` is a data layer only: it does **not** ship helpers to hash or verify user passwords (unlike some full-stack frameworks). Anything related to authentication — hashing, tokens, sessions — belongs in **your application** or a dedicated auth library.
+
+**What to do:** add a package such as [`bcrypt`](https://www.npmjs.com/package/bcrypt), [`@node-rs/argon2`](https://www.npmjs.com/package/@node-rs/argon2), or use Node’s [`crypto.scrypt`](https://nodejs.org/api/crypto.html#cryptoscryptpassword-salt-keylen-options-callback) / [`crypto.pbkdf2`](https://nodejs.org/api/crypto.html#cryptopbkdf2password-salt-iterations-keylen-digest-callback). Store only the **hash** in the database (e.g. a `password_hash` column); never store plaintext passwords.
+
+**Example (bcrypt + model hook):** hash on save with `@beforeSave`, and verify on login with `bcrypt.compare`. The hook only runs when `passwordHash` is dirty; strings that already look like a bcrypt hash are left as-is (so you can still assign a pre-computed hash if needed).
+
+```bash
+npm install bcrypt
+npm install -D @types/bcrypt
+```
+
+```ts
+import bcrypt from 'bcrypt'
+import { BaseModel, column, beforeSave } from 'lucinate'
+
+const ROUNDS = 12
+
+/** Returns true if the value already looks like a bcrypt hash. */
+function isBcryptHash(value: string): boolean {
+  return /^\$2[aby]\$\d{2}\$/.test(value)
+}
+
+export async function hashPassword(plain: string): Promise<string> {
+  return bcrypt.hash(plain, ROUNDS)
+}
+
+export async function verifyPassword(plain: string, hash: string): Promise<boolean> {
+  return bcrypt.compare(plain, hash)
+}
+
+export default class User extends BaseModel {
+  static table = 'users'
+
+  @column({ isPrimary: true })
+  declare id: number
+
+  /** DB column should store the bcrypt hash only. Assign plaintext here on register / password change. */
+  @column()
+  declare passwordHash: string
+
+  @beforeSave()
+  async hashPasswordBeforeSave() {
+    if (!('passwordHash' in this.$dirty)) {
+      return
+    }
+    const value = this.passwordHash
+    if (!value || isBcryptHash(value)) {
+      return
+    }
+    this.passwordHash = await hashPassword(value)
+  }
+}
+```
+
+**Alternative: `@column({ prepare })`** — You can hash in the column’s `prepare` callback (`ColumnOptions` in the published types; runs when persisting). It must be **synchronous**: Lucinate does not await `prepare`, so returning a `Promise` (e.g. from async `hashPassword`, `bcrypt.hash`, or `Bun.password.hash`) would be wrong. Use **`bcrypt.hashSync`** or, on Bun, **`Bun.password.hashSync`** (see [Bun `Bun.password`](https://bun.sh/docs/api/hashing)).
+
+```ts
+@column({
+  prepare: (value) => {
+    if (value == null || typeof value !== 'string' || isBcryptHash(value)) {
+      return value
+    }
+    return bcrypt.hashSync(value, ROUNDS)
+  },
+})
+declare passwordHash: string
+```
+
+With Bun (sync API only in `prepare`):
+
+```ts
+@column({
+  prepare: (value) => {
+    if (value == null || typeof value !== 'string') {
+      return value
+    }
+    return Bun.password.hashSync(value, {
+      algorithm: 'bcrypt',
+      cost: 12,
+    })
+  },
+})
+declare passwordHash: string
+```
+
+On login, load the user and call `verifyPassword(plain, user.passwordHash)` (or `bcrypt.compare` / `Bun.password.verify`) — verification is **not** done inside the hook or `prepare`.
 
 ---
 
@@ -272,7 +357,7 @@ import { bootDatabase } from 'lucinate'
 await bootDatabase()
 ```
 
-Resolves app root like the CLI, loads `config/database.*` (or `LUCINATE_CONFIG_PATH`), returns a **singleton** `Database`. Registers **`db.modelAdapter()`** as the default for models. Options: `appRoot`, `config`, `configPath`, `logger`, `emitter`, `force`. Use **`resetBootDatabase()`** to tear down (e.g. tests).
+Uses **`process.cwd()`** as the app root (unless you pass **`appRoot`**). Loads **`config/database.ts`** (or compiled **`build/config/database.js`**). Returns a **singleton** `Database`. Registers **`db.modelAdapter()`** as the default for models. Options: `appRoot`, `config`, `configPath`, `logger`, `emitter`, `force`. Use **`resetBootDatabase()`** to tear down (e.g. tests).
 
 **Naming strategy** is not configured here. Set the global default with **`BaseModel.namingStrategy`** (e.g. `BaseModel.namingStrategy = new SnakeCaseNamingStrategy()` from `lucinate/orm`), ideally on an app base model file that runs **before** other models are imported, or use **`static namingStrategy`** on a specific model class.
 
