@@ -1,5 +1,6 @@
 import type { LucidModel } from '../../types/model.js'
 import type { ModelMixin } from '../core/types.js'
+import { ModelQueryBuilder } from '../../orm/query_builder/index.js'
 
 export type FilterInput = Record<string, any>
 
@@ -80,3 +81,8 @@ export const Filterable: ModelMixin = (superclass) => {
 export function registerFilterAddon(ModelQueryBuilder: any) {
   ensureFilterMacro(ModelQueryBuilder)
 }
+
+/**
+ * Auto-register filter macro on import.
+ */
+ensureFilterMacro(ModelQueryBuilder)

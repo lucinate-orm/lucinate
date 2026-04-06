@@ -102,6 +102,84 @@ Logical paths map to **`build/...`** at runtime. Migration rows store **logical*
 
 ---
 
+## Addons (opt-in)
+
+`lucinate` now includes first-party addons. They are opt-in and do not change default ORM behavior unless you apply them.
+Macros are auto-registered when addon modules are imported.
+
+### `HasUuids` (UUID v7 default)
+
+```ts
+import { BaseModel } from 'lucinate'
+import { compose } from '@poppinss/utils'
+import { HasUuids } from 'lucinate'
+
+class User extends compose(BaseModel, HasUuids) {
+  static uniqueIds() {
+    return ['id'] // optional, default is ['id']
+  }
+}
+```
+
+### `HasUlids` (monotonic default)
+
+```ts
+import { BaseModel } from 'lucinate'
+import { compose } from '@poppinss/utils'
+import { HasUlids } from 'lucinate'
+
+class Order extends compose(BaseModel, HasUlids) {
+  static uniqueIds() {
+    return ['id'] // optional, default is ['id']
+  }
+}
+```
+
+### `SoftDeletes`
+
+```ts
+import { BaseModel } from 'lucinate'
+import { compose } from '@poppinss/utils'
+import { SoftDeletes } from 'lucinate'
+
+class Post extends compose(BaseModel, SoftDeletes) {}
+
+await Post.query().withTrashed()
+await Post.query().onlyTrashed()
+await Post.query().restore()
+await Post.query().forceDelete()
+```
+
+### `Filterable`
+
+```ts
+import { BaseModel } from 'lucinate'
+import { compose } from '@poppinss/utils'
+import { Filterable, BaseFilter } from 'lucinate'
+
+class UserFilter extends BaseFilter {
+  name(value: string) {
+    this['query'].where('name', 'like', `%${value}%`)
+  }
+}
+
+class User extends compose(BaseModel, Filterable) {
+  static $filter = UserFilter
+}
+
+await User.filter({ name: 'marcio' }).exec()
+```
+
+### `joinRelation` (MVP)
+
+```ts
+await User.query().joinRelation('profile')
+```
+
+Current MVP supports `belongsTo` and `hasOne`.
+
+---
+
 ## TypeScript
 
 Use a dedicated **`tsconfig.db.json`** to emit JS for DB code while the main app `tsconfig` may use `noEmit` / bundler mode. With **`NodeNext`**, use **`.js`** extensions in source imports for local files (they match emitted output).
@@ -139,6 +217,23 @@ import {
 ```
 
 Subpaths (see `package.json` → `exports`): `lucinate/orm`, `lucinate/schema`, `lucinate/migration`, `lucinate/config/load`, `lucinate/config/boot`. Relation types: `import type { BelongsTo } from 'lucinate'`.
+
+---
+
+## Schema helpers (Laravel-like)
+
+The schema builder exposes convenience helpers:
+
+```ts
+this.schema.createTable('comments', (table) => {
+  table.uuid('id').primary()
+  table.softDeletes() // deleted_at nullable timestamp
+})
+
+this.schema.createTable('images', (table) => {
+  table.ulid('id').primary()
+})
+```
 
 ---
 

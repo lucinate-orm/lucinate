@@ -1,4 +1,5 @@
 import type { LucidModel } from '../../types/model.js'
+import { ModelQueryBuilder } from '../../orm/query_builder/index.js'
 
 export type JoinType = 'inner' | 'left'
 
@@ -62,3 +63,8 @@ export function applyJoinRelationsToModel(Model: LucidModel) {
   ;(Model as any).boot()
   return Model
 }
+
+/**
+ * Auto-register joinRelation macro on import.
+ */
+ensureJoinRelatedMacro(ModelQueryBuilder)
