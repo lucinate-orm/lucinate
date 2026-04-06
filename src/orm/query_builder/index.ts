@@ -872,6 +872,13 @@ export class ModelQueryBuilder
   }
 
   /**
+   * Join-relations addon: no-op stub; replaced by macro when the addon is loaded.
+   */
+  joinRelation(_relationName: string, _options?: { joinType?: 'inner' | 'left' }): this {
+    return this
+  }
+
+  /**
    * Get rows back as a plain javascript object and not an array
    * of model instances
    */

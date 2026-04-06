@@ -542,6 +542,12 @@ export interface ModelQueryBuilderContract<Model extends LucidModel, Result = In
    * Implemented on `ModelQueryBuilder`; relation query builders inherit a no-op stub.
    */
   filter(input?: ModelObject, FilterCtor?: any): this
+
+  /**
+   * Join relations addon: perform SQL join for `belongsTo` / `hasOne`.
+   * Implemented on `ModelQueryBuilder`; relation query builders inherit a no-op stub.
+   */
+  joinRelation(relationName: string, options?: { joinType?: 'inner' | 'left' }): this
 }
 
 /**
