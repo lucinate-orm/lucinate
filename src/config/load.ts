@@ -30,6 +30,19 @@ export function resolveDefaultDatabaseConfigPath(
   appRoot: string,
   options?: { nodeEnv?: string }
 ): string | null {
+  const prod = (options?.nodeEnv ?? process.env.NODE_ENV) === 'production'
+
+  /**
+   * In development, prefer source config under appRoot/config to avoid
+   * loading stale compiled files from build/config.
+   */
+  if (!prod) {
+    for (const name of getDefaultDatabaseConfigFilenames(options?.nodeEnv)) {
+      const p = join(appRoot, 'config', name)
+      if (existsSync(p)) return p
+    }
+  }
+
   const built = join(appRoot, 'build', 'config', 'database.js')
   if (existsSync(built)) return built
 

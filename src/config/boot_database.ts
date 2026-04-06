@@ -19,6 +19,11 @@ import { resolveAppRootFromCandidates } from './resolve_app_root.js'
 export type BootDatabaseOptions = {
   /** App root (config/, database/, …). If omitted: `APP_ROOT` or candidates from `process.cwd()`. */
   appRoot?: string
+  /**
+   * Overrides `process.env.NODE_ENV` for config path resolution (e.g. prefer `config/database.*` in dev).
+   * Use `"production"` when you want production-style resolution without setting env globally.
+   */
+  nodeEnv?: string
   /** Resolved config — does not read a file. */
   config?: DatabaseConfig
   /** Absolute or relative path to the config file. */
@@ -57,7 +62,7 @@ function resolveConfigFilePath(appRoot: string, options?: BootDatabaseOptions): 
   if (fromEnv) {
     return fromEnv
   }
-  const def = resolveDefaultDatabaseConfigPath(appRoot)
+  const def = resolveDefaultDatabaseConfigPath(appRoot, { nodeEnv: options?.nodeEnv })
   if (def) {
     return def
   }
