@@ -120,8 +120,20 @@ Logical paths map to **`build/...`** at runtime. Migration rows store **logical*
 
 ## Addons (opt-in)
 
-`lucinate` now includes first-party addons. They are opt-in and do not change default ORM behavior unless you apply them.
+`lucinate` includes first-party addons. They are opt-in and do not change default ORM behavior unless you apply them.
 Macros are auto-registered when addon modules are imported.
+
+**Documentation:** see the addon index and guides in [`docs/README.md`](docs/README.md).
+
+| Addon | Doc |
+|-------|-----|
+| Soft deletes (`SoftDeletes`) | [`docs/addon-soft-deletes.md`](docs/addon-soft-deletes.md) |
+| Filterable (`Filterable`, `BaseFilter`) | [`docs/addon-filters.md`](docs/addon-filters.md) |
+| Join relations (`.joinRelation` / `.leftJoinRelation`) | [`docs/addon-join-relations.md`](docs/addon-join-relations.md) |
+| Select related (`.selectRelated` + `SelectRelated` mixin) | [`docs/addon-select-related.md`](docs/addon-select-related.md) |
+| Has UUIDs (`HasUuids`) | [`docs/addon-has-uuids.md`](docs/addon-has-uuids.md) |
+| Has ULIDs (`HasUlids`) | [`docs/addon-has-ulids.md`](docs/addon-has-ulids.md) |
+| Morph relations (`morphOne`, `morphMany`, `morphTo`, …) | [`docs/addon-morph-relations.md`](docs/addon-morph-relations.md) |
 
 ### `HasUuids` (UUID v7 default)
 
@@ -137,6 +149,8 @@ class User extends compose(BaseModel, HasUuids) {
 }
 ```
 
+Details: [`docs/addon-has-uuids.md`](docs/addon-has-uuids.md).
+
 ### `HasUlids` (monotonic default)
 
 ```ts
@@ -150,6 +164,8 @@ class Order extends compose(BaseModel, HasUlids) {
   }
 }
 ```
+
+Details: [`docs/addon-has-ulids.md`](docs/addon-has-ulids.md).
 
 ### `SoftDeletes`
 
@@ -165,6 +181,8 @@ await Post.query().onlyTrashed()
 await Post.query().restore()
 await Post.query().forceDelete()
 ```
+
+Details: [`docs/addon-soft-deletes.md`](docs/addon-soft-deletes.md).
 
 ### `Filterable`
 
@@ -186,13 +204,35 @@ class User extends compose(BaseModel, Filterable) {
 await User.filter({ name: 'marcio' }).exec()
 ```
 
+Details: [`docs/addon-filters.md`](docs/addon-filters.md).
+
 ### `joinRelation` (MVP)
 
 ```ts
 await User.query().joinRelation('profile')
+await User.query().leftJoinRelation('profile')
 ```
 
-Current MVP supports `belongsTo` and `hasOne`.
+Current MVP supports `belongsTo` and `hasOne`. Details: [`docs/addon-join-relations.md`](docs/addon-join-relations.md).
+
+### `selectRelated`
+
+JOIN + aliased columns + hydration (Django-style `select_related`). The **`.selectRelated()`** macro must be used together with the **`SelectRelated` mixin** on the root model so hooks can finalize the query and merge rows for “many” relations.
+
+```ts
+import { BaseModel } from 'lucinate'
+import { compose } from '@poppinss/utils'
+import { SelectRelated } from 'lucinate'
+
+class Partner extends compose(BaseModel, SelectRelated) {}
+
+const partners = await Partner.query()
+  .selectRelated('partnerType', { joinType: 'left', columns: ['id', 'name'] })
+  .select('id', 'name')
+  .exec()
+```
+
+Details: [`docs/addon-select-related.md`](docs/addon-select-related.md).
 
 ### `morph-relations` (MVP)
 
@@ -214,7 +254,7 @@ class Post extends BaseModel {
 }
 ```
 
-MVP supports `morphOne`, `morphMany`, and `morphTo` with `related(...).query()/associate()/dissociate()`.
+MVP supports `morphOne`, `morphMany`, and `morphTo` with `related(...).query()/associate()/dissociate()`. `defineMorphMap` and `MorphMapAlias` are available for type aliases. Details: [`docs/addon-morph-relations.md`](docs/addon-morph-relations.md).
 
 ---
 
