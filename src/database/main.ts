@@ -13,6 +13,7 @@ import type { Emitter } from '../shims/runtime/events.js'
 import type { Logger } from '../shims/runtime/logger.js'
 
 import {
+  type ConnectionConfig,
   type DatabaseConfig,
   type IsolationLevels,
   type QueryClientContract,
@@ -24,7 +25,7 @@ import {
 import { type LucidModel } from '../types/model.js'
 import { Adapter } from '../orm/adapter/index.js'
 import { RawBuilder } from './static_builder/raw.js'
-import { QueryClient } from '../query_client/index.js'
+import { QueryClient, pickConnectionDebug } from '../query_client/index.js'
 import { prettyPrint } from '../helpers/pretty_print.js'
 import { ConnectionManager } from '../connection/manager.js'
 import { InsertQueryBuilder } from './query_builder/insert.js'
@@ -34,7 +35,7 @@ import { DatabaseQueryBuilder } from './query_builder/database.js'
 
 export { DbCheck } from './checks/db_check.js'
 export { DbConnectionCountCheck } from './checks/db_connection_count_check.js'
-export { DatabaseQueryBuilder, InsertQueryBuilder, SimplePaginator, QueryClient }
+export { DatabaseQueryBuilder, InsertQueryBuilder, SimplePaginator, QueryClient, pickConnectionDebug }
 
 /**
  * Database class exposes the API to manage multiple connections and obtain an instance
@@ -60,7 +61,8 @@ export class Database extends Macroable {
   constructor(
     public config: DatabaseConfig,
     private logger: Logger,
-    private emitter: Emitter<any>
+    /** Shared by {@link QueryClient} and connection manager — use `db.on(...)` or `db.emitter.on(...)`. */
+    public readonly emitter: Emitter<any>
   ) {
     super()
     this.manager = new ConnectionManager(this.logger, this.emitter)
@@ -77,6 +79,40 @@ export class Database extends Macroable {
     Object.keys(this.config.connections).forEach((name) => {
       this.manager.add(name, this.config.connections[name])
     })
+  }
+
+  /**
+   * Subscribe to database events (`db:query`, `db:connection:*`, …). Same emitter as {@link QueryClient.emitter}.
+   */
+  on(event: string | symbol, listener: (...args: any[]) => void): this {
+    this.emitter.on(event, listener)
+    return this
+  }
+
+  /**
+   * Subscribe once, then remove the listener.
+   */
+  once(event: string | symbol, listener: (...args: any[]) => void): this {
+    this.emitter.once(event, listener)
+    return this
+  }
+
+  /**
+   * Remove a listener (Node 14+ alias of removeListener for EventEmitter).
+   */
+  off(event: string | symbol, listener: (...args: any[]) => void): this {
+    this.emitter.off(event, listener)
+    return this
+  }
+
+  removeListener(event: string | symbol, listener: (...args: any[]) => void): this {
+    this.emitter.removeListener(event, listener)
+    return this
+  }
+
+  removeAllListeners(event?: string | symbol): this {
+    this.emitter.removeAllListeners(event)
+    return this
   }
 
   /**
@@ -121,14 +157,21 @@ export class Database extends Macroable {
      */
     const rawConnection = this.getRawConnection(connection)!.connection!
 
+    const poolConfig = this.config.connections[connection] as ConnectionConfig | undefined
+    const debug = pickConnectionDebug(
+      poolConfig,
+      rawConnection.config,
+      this.config.debug
+    )
+
     /**
      * Generating query client for a given connection and setting appropriate
      * mode on it
      */
     this.logger.trace({ connection }, 'creating query client in %s mode', [options.mode || 'dual'])
     const queryClient = options.mode
-      ? new QueryClient(options.mode, rawConnection, this.emitter)
-      : new QueryClient('dual', rawConnection, this.emitter)
+      ? new QueryClient(options.mode, rawConnection, this.emitter, debug)
+      : new QueryClient('dual', rawConnection, this.emitter, debug)
 
     return queryClient
   }

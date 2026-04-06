@@ -3,7 +3,14 @@
  */
 export * as errors from './src/errors.js'
 export { defineConfig } from './src/define_config.js'
-export { Database, DatabaseQueryBuilder, InsertQueryBuilder, QueryClient, SimplePaginator } from './src/database/main.js'
+export {
+  Database,
+  DatabaseQueryBuilder,
+  InsertQueryBuilder,
+  QueryClient,
+  SimplePaginator,
+  pickConnectionDebug,
+} from './src/database/main.js'
 export {
   loadDatabaseConfig,
   resolveDefaultDatabaseConfigPath,
