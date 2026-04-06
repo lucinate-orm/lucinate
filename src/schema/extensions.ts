@@ -1,4 +1,12 @@
-import knex from "knex";
+import { createRequire } from "node:module";
+
+/**
+ * Must match `src/connection/index.ts`: ESM `import knex from "knex"` can resolve a
+ * different module instance than `require("knex/knex")`, so TableBuilder extensions
+ * would not apply to schema queries at runtime (e.g. `table.ulid is not a function`).
+ */
+const require = createRequire(import.meta.url);
+const knex = require("knex/knex") as typeof import("knex").default;
 
 let registered = false;
 let defaultMorphKeyType: "numeric" | "uuid" | "ulid" = "numeric";

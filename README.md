@@ -278,6 +278,8 @@ this.schema.createTable('attachments', (table) => {
 })
 ```
 
+Helpers attach to the same Knex module used for connections (`knex/knex`), so they apply to migration/schema queries at runtime.
+
 ---
 
 ## Developing this repo
