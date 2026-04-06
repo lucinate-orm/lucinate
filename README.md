@@ -178,6 +178,28 @@ await User.query().joinRelation('profile')
 
 Current MVP supports `belongsTo` and `hasOne`.
 
+### `morph-relations` (MVP)
+
+```ts
+import { BaseModel } from 'lucinate'
+import { column } from 'lucinate/orm'
+import { morphOne, morphMany, morphTo } from 'lucinate'
+
+class Image extends BaseModel {
+  @column() declare imageableType: string
+  @column() declare imageableId: string
+  @morphTo({ name: 'imageable' })
+  declare imageable: any
+}
+
+class Post extends BaseModel {
+  @morphOne(() => Image, { name: 'imageable' })
+  declare image: Image | null
+}
+```
+
+MVP supports `morphOne`, `morphMany`, and `morphTo` with `related(...).query()/associate()/dissociate()`.
+
 ---
 
 ## TypeScript
@@ -232,6 +254,11 @@ this.schema.createTable('comments', (table) => {
 
 this.schema.createTable('images', (table) => {
   table.ulid('id').primary()
+})
+
+this.schema.createTable('attachments', (table) => {
+  table.morphs('attachable')
+  // or: numericMorphs / uuidMorphs / ulidMorphs
 })
 ```
 
