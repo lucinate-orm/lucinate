@@ -2,7 +2,11 @@ import { hasMany, hasOne } from '../../orm/decorators/index.js'
 import { BaseModel } from '../../orm/base_model/index.js'
 import { Preloader } from '../../orm/preloader/index.js'
 import type { LucidModel, LucidRow, OptionalTypedDecorator } from '../../types/model.js'
-import type { MorphTo as MorphToOpaque } from '../../types/relations.js'
+import type {
+  MorphTo as MorphToOpaque,
+} from '../../types/relations.js'
+
+type AnyModelCtor = new (...args: any[]) => any
 
 export type ModelFactory = () => LucidModel
 export type MorphMap = Record<string, ModelFactory>
@@ -27,9 +31,17 @@ export type MorphToOptions<TMap extends MorphMap = MorphMap> = {
   serializeAs?: string | null
 }
 
-export type MorphOne<RelatedModel extends LucidModel> = InstanceType<RelatedModel> | null
-export type MorphMany<RelatedModel extends LucidModel> = InstanceType<RelatedModel>[]
+export type MorphOne<RelatedModel extends AnyModelCtor> = InstanceType<RelatedModel> | null
+export type MorphMany<RelatedModel extends AnyModelCtor> = InstanceType<RelatedModel>[]
 export type MorphTo<RelatedModel extends LucidModel> = MorphToOpaque<RelatedModel> | null
+export type MorphOneDecorator = <RelatedModel extends AnyModelCtor>(
+  model: () => RelatedModel,
+  options: MorphOneManyOptions
+) => OptionalTypedDecorator<MorphOne<RelatedModel>>
+export type MorphManyDecorator = <RelatedModel extends AnyModelCtor>(
+  model: () => RelatedModel,
+  options: MorphOneManyOptions
+) => OptionalTypedDecorator<MorphMany<RelatedModel>>
 
 type MorphToDefinition = {
   relationName: string
@@ -113,17 +125,14 @@ function patchRelationHydration(Model: LucidModel, relationName: string, morphTy
   ;(relation as any).__morphPatched = true
 }
 
-export function morphOne<RelatedModel extends LucidModel>(
-  model: () => RelatedModel,
-  options: MorphOneManyOptions
-): OptionalTypedDecorator<InstanceType<RelatedModel> | null> {
+export const morphOne: MorphOneDecorator = (model, options) => {
   return function decorate(target, property) {
     const ParentModel = target.constructor as LucidModel
     const morphTypeKey = options.morphTypeKey || `${options.name}Type`
     const morphIdKey = options.morphIdKey || `${options.name}Id`
     const morphValue = resolveMorphValue(ParentModel, options)
 
-    hasOne(model, {
+    hasOne(model as unknown as () => LucidModel, {
       localKey: options.localKey,
       foreignKey: morphIdKey,
       serializeAs: options.serializeAs,
@@ -138,17 +147,14 @@ export function morphOne<RelatedModel extends LucidModel>(
   }
 }
 
-export function morphMany<RelatedModel extends LucidModel>(
-  model: () => RelatedModel,
-  options: MorphOneManyOptions
-): OptionalTypedDecorator<InstanceType<RelatedModel>[]> {
+export const morphMany: MorphManyDecorator = (model, options) => {
   return function decorate(target, property) {
     const ParentModel = target.constructor as LucidModel
     const morphTypeKey = options.morphTypeKey || `${options.name}Type`
     const morphIdKey = options.morphIdKey || `${options.name}Id`
     const morphValue = resolveMorphValue(ParentModel, options)
 
-    hasMany(model, {
+    hasMany(model as unknown as () => LucidModel, {
       localKey: options.localKey,
       foreignKey: morphIdKey,
       serializeAs: options.serializeAs,
