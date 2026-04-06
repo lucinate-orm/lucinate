@@ -35,7 +35,7 @@ Same mental model (models, relations, migrations); normal library packaging and 
 ## Getting started
 
 1. Add **`config/database.ts`** with `defineConfig`. Use **logical** paths for `migrations.paths` and `seeders.paths` (e.g. `database/migrations`, `database/seeders`). At runtime they resolve under **`build/`** (compiled JS).
-2. Add **`tsconfig.db.json`** with `outDir: build`, `module` / `moduleResolution` for Node (`NodeNext`), and `include` for `config/database.ts`, `database/**/*.ts`, `src/models/**/*.ts`. **`migrate` / `seed` run `tsc -p tsconfig.db.json` automatically** when that file exists (set `LUCINATE_DATABASE_SKIP_DB_BUILD=1` to skip).
+2. Add **`tsconfig.db.json`** with `outDir: build`, `module` / `moduleResolution` for Node (`NodeNext`), and `include` for `config/database.ts`, `database/**/*.ts`, `src/models/**/*.ts`. **`make:*` / `migrate` / `seed` run `tsc -p tsconfig.db.json` automatically** when that file exists (set `LUCINATE_DATABASE_SKIP_DB_BUILD=1` to skip).
 3. For path aliases (`@/models/...`), run **`tsc-alias`** after `tsc` if installed (the package’s compile step tries to invoke it).
 4. Run commands from the **project root** (`config/`, `database/`). `cwd` or **`APP_ROOT`** / **`ROOT_PATH`** usually suffice; use **`--app-root`** only when you must override.
 
@@ -76,8 +76,24 @@ npx lucinate --help
 |-----|------|
 | `APP_ROOT` | App root when not `cwd` |
 | `LUCINATE_CONFIG_PATH` | Path to database config |
-| `LUCINATE_DATABASE_SKIP_DB_BUILD=1` | Skip automatic `tsc` before migrate/seed |
+| `LUCINATE_DATABASE_SKIP_DB_BUILD=1` | Skip automatic `tsc` before make/migrate/seed |
 | `LUCINATE_SEED_FILE` | Same as `seed --file` |
+
+### TypeScript checks during CLI generation
+
+If your project has `tsconfig.db.json`, generator commands like
+`make:migration -m -s` can fail because model/seeder files are typechecked
+before stubs are generated.
+
+Common example:
+
+- `TS4114` with `noImplicitOverride: true` (missing `override` in classes extending `BaseModel` / `BaseSeeder`).
+
+Bypass options:
+
+- **Temporary:** run command with build skip
+  - `LUCINATE_DATABASE_SKIP_DB_BUILD=1 bunx lucinate make:migration ...`
+- **Structural:** keep a dedicated `tsconfig.db.json` aligned for DB artifacts (or run `build:db` manually before CLI commands).
 
 ---
 
@@ -178,6 +194,28 @@ await User.query().joinRelation('profile')
 
 Current MVP supports `belongsTo` and `hasOne`.
 
+### `morph-relations` (MVP)
+
+```ts
+import { BaseModel } from 'lucinate'
+import { column } from 'lucinate/orm'
+import { morphOne, morphMany, morphTo } from 'lucinate'
+
+class Image extends BaseModel {
+  @column() declare imageableType: string
+  @column() declare imageableId: string
+  @morphTo({ name: 'imageable' })
+  declare imageable: any
+}
+
+class Post extends BaseModel {
+  @morphOne(() => Image, { name: 'imageable' })
+  declare image: Image | null
+}
+```
+
+MVP supports `morphOne`, `morphMany`, and `morphTo` with `related(...).query()/associate()/dissociate()`.
+
 ---
 
 ## TypeScript
@@ -195,6 +233,8 @@ await bootDatabase()
 ```
 
 Resolves app root like the CLI, loads `config/database.*` (or `LUCINATE_CONFIG_PATH`), returns a **singleton** `Database`. Registers **`db.modelAdapter()`** as the default for models. Options: `appRoot`, `config`, `configPath`, `logger`, `emitter`, `force`. Use **`resetBootDatabase()`** to tear down (e.g. tests).
+
+**Naming strategy** is not configured here. Set the global default with **`BaseModel.namingStrategy`** (e.g. `BaseModel.namingStrategy = new SnakeCaseNamingStrategy()` from `lucinate/orm`), ideally on an app base model file that runs **before** other models are imported, or use **`static namingStrategy`** on a specific model class.
 
 ---
 
@@ -233,7 +273,14 @@ this.schema.createTable('comments', (table) => {
 this.schema.createTable('images', (table) => {
   table.ulid('id').primary()
 })
+
+this.schema.createTable('attachments', (table) => {
+  table.morphs('attachable')
+  // or: numericMorphs / uuidMorphs / ulidMorphs
+})
 ```
+
+Helpers attach to the same Knex module used for connections (`knex/knex`), so they apply to migration/schema queries at runtime.
 
 ---
 

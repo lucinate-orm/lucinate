@@ -21,10 +21,6 @@ export const HasUuids: ModelMixin = (superclass) => {
             initialized: false,
         };
 
-        static uniqueIds(): string[] {
-            return resolveUuidColumns(this);
-        }
-
         static boot() {
             super.boot();
 

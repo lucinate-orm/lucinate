@@ -6,19 +6,21 @@ import { existsSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { Database } from '../database/main.js'
 import type { DatabaseConfig } from '../types/database.js'
-import type { NamingStrategyContract } from '../types/model.js'
 import type { Emitter } from '../shims/runtime/events.js'
 import type { Logger } from '../shims/runtime/logger.js'
 import { createConsoleLogger } from './console_logger.js'
 import { setDefaultModelAdapter } from '../orm/default_model_adapter.js'
-import { BaseModel } from '../orm/base_model/index.js'
-import { CamelCaseNamingStrategy } from '../orm/naming_strategies/camel_case.js'
 import { loadDatabaseConfig, resolveDefaultDatabaseConfigPath } from './load.js'
 import { resolveAppRootFromCandidates } from './resolve_app_root.js'
 
 export type BootDatabaseOptions = {
   /** App root (config/, database/, …). If omitted: `APP_ROOT` or candidates from `process.cwd()`. */
   appRoot?: string
+  /**
+   * Overrides `process.env.NODE_ENV` for config path resolution (e.g. prefer `config/database.*` in dev).
+   * Use `"production"` when you want production-style resolution without setting env globally.
+   */
+  nodeEnv?: string
   /** Resolved config — does not read a file. */
   config?: DatabaseConfig
   /** Absolute or relative path to the config file. */
@@ -27,8 +29,6 @@ export type BootDatabaseOptions = {
   emitter?: Emitter
   /** Close the previous instance and create another (useful in tests). */
   force?: boolean
-  /** Same as `BaseModel.namingStrategy = …` (after boot, models may already have booted — prefer setting global naming before importing models). */
-  namingStrategy?: NamingStrategyContract | null
 }
 
 let singleton: Database | null = null
@@ -57,15 +57,11 @@ function resolveConfigFilePath(appRoot: string, options?: BootDatabaseOptions): 
   if (fromEnv) {
     return fromEnv
   }
-  const def = resolveDefaultDatabaseConfigPath(appRoot)
+  const def = resolveDefaultDatabaseConfigPath(appRoot, { nodeEnv: options?.nodeEnv })
   if (def) {
     return def
   }
   return join(appRoot, 'build', 'config', 'database.js')
-}
-
-function applyBaseModelNamingStrategy(strategy: NamingStrategyContract | null): void {
-  BaseModel.namingStrategy = strategy ?? new CamelCaseNamingStrategy()
 }
 
 /**
@@ -105,10 +101,6 @@ export async function bootDatabase(options?: BootDatabaseOptions): Promise<Datab
     await bootInFlight
   }
 
-  if (options?.namingStrategy !== undefined) {
-    applyBaseModelNamingStrategy(options.namingStrategy)
-  }
-
   if (!options?.force && singleton) {
     setDefaultModelAdapter(singleton.modelAdapter())
     return singleton
@@ -146,5 +138,4 @@ export async function resetBootDatabase(): Promise<void> {
   singleton = null
   bootInFlight = null
   setDefaultModelAdapter(null)
-  applyBaseModelNamingStrategy(null)
 }

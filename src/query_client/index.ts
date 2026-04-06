@@ -12,6 +12,7 @@ import { Exception } from '@poppinss/utils/exception'
 import type { Emitter } from '../shims/runtime/events.js'
 
 import {
+  type ConnectionConfig,
   type IsolationLevels,
   type DialectContract,
   type ConnectionContract,
@@ -42,6 +43,39 @@ import {
 import { ModelQueryBuilder } from '../orm/query_builder/index.js'
 
 /**
+ * Lucinate reads `debug` from the connection block (`SharedConfigNode.debug`).
+ * Some apps only set `connection.debug` inside the driver object; accept that as fallback.
+ */
+export function resolveDebugFromConnectionConfig(config: ConnectionConfig): boolean {
+  if (typeof config.debug === 'boolean') {
+    return config.debug
+  }
+  const driver = (config as { connection?: { debug?: boolean } }).connection
+  if (driver && typeof driver === 'object' && typeof driver.debug === 'boolean') {
+    return driver.debug
+  }
+  return false
+}
+
+/**
+ * Prefer `debug` from the pool entry in `Database.config.connections` (authoritative file shape),
+ * then optional `Database.config.debug`, then the live {@link ConnectionContract.config}.
+ */
+export function pickConnectionDebug(
+  poolConfig: ConnectionConfig | undefined,
+  connectionConfig: ConnectionConfig,
+  databaseGlobal?: boolean
+): boolean {
+  if (poolConfig && (poolConfig.debug === true || poolConfig.debug === false)) {
+    return poolConfig.debug
+  }
+  if (databaseGlobal === true || databaseGlobal === false) {
+    return databaseGlobal
+  }
+  return resolveDebugFromConnectionConfig(connectionConfig)
+}
+
+/**
  * Query client exposes the API to fetch instance of different query builders
  * to perform queries on a selecte connection.
  */
@@ -69,9 +103,10 @@ export class QueryClient implements QueryClientContract {
   constructor(
     public mode: 'dual' | 'write' | 'read',
     private connection: ConnectionContract,
-    public emitter: Emitter<any>
+    public emitter: Emitter<any>,
+    debug: boolean
   ) {
-    this.debug = !!this.connection.config.debug
+    this.debug = debug
     this.connectionName = this.connection.name
     this.dialect = new clientsToDialectsMapping[this.connection.clientName](
       this,

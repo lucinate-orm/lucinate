@@ -27,6 +27,10 @@ export class HasOne implements HasOneRelationContract<LucidModel, LucidModel> {
   readonly type = 'hasOne'
 
   booted: boolean = false
+
+  /**
+   * The key name for serializing the relationship
+   */
   serializeAs
 
   /**
@@ -58,7 +62,9 @@ export class HasOne implements HasOneRelationContract<LucidModel, LucidModel> {
   ) {
     this.onQueryHook = this.options.onQuery
     this.serializeAs =
-      this.options.serializeAs === undefined ? this.relationName : this.options.serializeAs
+      this.options.serializeAs === undefined
+        ? this.model.namingStrategy.serializedName(this.model, this.relationName)
+        : this.options.serializeAs
     this.meta = this.options.meta
   }
 

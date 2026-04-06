@@ -70,7 +70,9 @@ export class HasMany implements HasManyRelationContract<LucidModel, LucidModel> 
     public model: LucidModel
   ) {
     this.serializeAs =
-      this.options.serializeAs === undefined ? this.relationName : this.options.serializeAs
+      this.options.serializeAs === undefined
+        ? this.model.namingStrategy.serializedName(this.model, this.relationName)
+        : this.options.serializeAs
     this.onQueryHook = this.options.onQuery
     this.meta = this.options.meta
   }

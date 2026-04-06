@@ -3,7 +3,14 @@
  */
 export * as errors from './src/errors.js'
 export { defineConfig } from './src/define_config.js'
-export { Database, DatabaseQueryBuilder, InsertQueryBuilder, QueryClient, SimplePaginator } from './src/database/main.js'
+export {
+  Database,
+  DatabaseQueryBuilder,
+  InsertQueryBuilder,
+  QueryClient,
+  SimplePaginator,
+  pickConnectionDebug,
+} from './src/database/main.js'
 export {
   loadDatabaseConfig,
   resolveDefaultDatabaseConfigPath,
@@ -34,5 +41,8 @@ export type {
   HasManyThrough,
   HasOne,
   ManyToMany,
+  MorphMany,
+  MorphOne,
+  MorphTo,
 } from './src/types/relations.js'
 export type { LucidRow as ModelRow } from './src/types/model.js'

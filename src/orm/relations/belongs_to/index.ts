@@ -69,7 +69,9 @@ export class BelongsTo implements BelongsToRelationContract<LucidModel, LucidMod
   ) {
     this.onQueryHook = this.options.onQuery
     this.serializeAs =
-      this.options.serializeAs === undefined ? this.relationName : this.options.serializeAs
+      this.options.serializeAs === undefined
+        ? this.model.namingStrategy.serializedName(this.model, this.relationName)
+        : this.options.serializeAs
     this.meta = this.options.meta
   }
 

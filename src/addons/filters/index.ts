@@ -69,10 +69,6 @@ export const Filterable: ModelMixin = (superclass) => {
 
       ;(this as any).__filterableBooted = true
     }
-
-    static filter(input: FilterInput = {}, FilterCtor?: any) {
-      return (this as any).query().filter(input, FilterCtor)
-    }
   }
 
   return FilterableModel as any
