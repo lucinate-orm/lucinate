@@ -2,13 +2,13 @@ import { hasMany, hasOne } from '../../orm/decorators/index.js'
 import { BaseModel } from '../../orm/base_model/index.js'
 import { Preloader } from '../../orm/preloader/index.js'
 import type { LucidModel, LucidRow, OptionalTypedDecorator } from '../../types/model.js'
-import type { MorphTo } from '../../types/relations.js'
+import type { MorphTo as MorphToOpaque } from '../../types/relations.js'
 
-type ModelFactory = () => LucidModel
-type MorphMap = Record<string, ModelFactory>
-type InferMorphModel<TMap extends MorphMap> = ReturnType<TMap[keyof TMap]>
+export type ModelFactory = () => LucidModel
+export type MorphMap = Record<string, ModelFactory>
+export type InferMorphModel<TMap extends MorphMap> = ReturnType<TMap[keyof TMap]>
 
-type MorphOneManyOptions = {
+export type MorphOneManyOptions = {
   name: string
   localKey?: string
   morphIdKey?: string
@@ -19,13 +19,17 @@ type MorphOneManyOptions = {
   meta?: any
 }
 
-type MorphToOptions<TMap extends MorphMap = MorphMap> = {
+export type MorphToOptions<TMap extends MorphMap = MorphMap> = {
   name: string
   morphMap?: TMap
   typeKey?: string
   idKey?: string
   serializeAs?: string | null
 }
+
+export type MorphOne<RelatedModel extends LucidModel> = InstanceType<RelatedModel> | null
+export type MorphMany<RelatedModel extends LucidModel> = InstanceType<RelatedModel>[]
+export type MorphTo<RelatedModel extends LucidModel> = MorphToOpaque<RelatedModel> | null
 
 type MorphToDefinition = {
   relationName: string
@@ -391,8 +395,8 @@ function ensureMorphSerializationPatch() {
 
 export function morphTo<TMap extends MorphMap>(
   options: MorphToOptions<TMap>
-): OptionalTypedDecorator<MorphTo<InferMorphModel<TMap>> | null>
-export function morphTo(options: MorphToOptions): OptionalTypedDecorator<MorphTo<LucidModel> | null> {
+): OptionalTypedDecorator<MorphToOpaque<InferMorphModel<TMap>> | null>
+export function morphTo(options: MorphToOptions): OptionalTypedDecorator<MorphToOpaque<LucidModel> | null> {
   return function decorate(target, property) {
     ensureMorphRelatedPatch()
     ensureMorphPreloaderPatch()
