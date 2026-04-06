@@ -929,6 +929,20 @@ export class ModelQueryBuilder
   }
 
   /**
+   * select-related addon: no-op stub; replaced by macro when the addon is loaded.
+   */
+  selectRelated(
+    _path: string,
+    _options?: {
+      joinType?: 'inner' | 'left'
+      sideload?: boolean
+      columns?: '*' | string[]
+    }
+  ): this {
+    return this
+  }
+
+  /**
    * Get rows back as a plain javascript object and not an array
    * of model instances
    */

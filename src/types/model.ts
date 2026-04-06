@@ -563,6 +563,19 @@ export interface ModelQueryBuilderContract<Model extends LucidModel, Result = In
   ): this
 
   /**
+   * select-related addon: join + aliased columns + hydrate related models (Django-style `select_related`).
+   * Use the `SelectRelated` mixin on the model for fetch/find hooks; the `.selectRelated()` macro loads with the addon module.
+   */
+  selectRelated(
+    path: string,
+    options?: {
+      joinType?: 'inner' | 'left'
+      sideload?: boolean
+      columns?: '*' | string[]
+    }
+  ): this
+
+  /**
    * SQL that would run for a select, including `before:fetch` hooks (soft deletes, etc.).
    * Sync `toSQL()` does not run model hooks — it only applies `applyWhere()`.
    */
