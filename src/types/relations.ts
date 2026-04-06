@@ -49,8 +49,8 @@ export type ExtractModelRelations<Model extends LucidRow> = {
  */
 export type GetRelationModelInstance<Relation extends ModelRelations<LucidModel, LucidModel>> =
   Relation['__opaque_type'] extends 'hasOne' | 'belongsTo'
-    ? Relation['instance']
-    : Relation['instance'][]
+    ? Relation['__relationInstance']
+    : Relation['__relationInstance'][]
 
 /**
  * ------------------------------------------------------
@@ -70,7 +70,7 @@ export type RelationOptions<
   localKey?: string
   foreignKey?: string
   serializeAs?: string | null
-  onQuery?(query: Related['builder'] | Related['subQuery']): void
+  onQuery?(query: Related['__relationBuilder'] | Related['__relationSubQuery']): void
   meta?: any
 }
 
@@ -91,7 +91,7 @@ export type ManyToManyRelationOptions<Related extends ModelRelations<LucidModel,
         updatedAt: string | boolean
       }
   serializeAs?: string | null
-  onQuery?(query: Related['builder'] | Related['subQuery']): void
+  onQuery?(query: Related['__relationBuilder'] | Related['__relationSubQuery']): void
   meta?: any
 }
 
@@ -179,11 +179,11 @@ export type HasOne<
   ParentModel extends LucidModel = LucidModel,
 > = InstanceType<RelatedModel> & {
   readonly __opaque_type: 'hasOne'
-  model: RelatedModel
-  instance: InstanceType<RelatedModel>
-  client: HasOneClientContract<HasOneRelationContract<ParentModel, RelatedModel>, RelatedModel>
-  builder: RelationQueryBuilderContract<RelatedModel, any>
-  subQuery: RelationSubQueryBuilderContract<RelatedModel>
+  __relationModel: RelatedModel
+  __relationInstance: InstanceType<RelatedModel>
+  __relationClient: HasOneClientContract<HasOneRelationContract<ParentModel, RelatedModel>, RelatedModel>
+  __relationBuilder: RelationQueryBuilderContract<RelatedModel, any>
+  __relationSubQuery: RelationSubQueryBuilderContract<RelatedModel>
 }
 
 /**
@@ -194,11 +194,11 @@ export type HasMany<
   ParentModel extends LucidModel = LucidModel,
 > = InstanceType<RelatedModel>[] & {
   readonly __opaque_type: 'hasMany'
-  model: RelatedModel
-  instance: InstanceType<RelatedModel>
-  client: HasManyClientContract<HasManyRelationContract<ParentModel, RelatedModel>, RelatedModel>
-  builder: HasManyQueryBuilderContract<RelatedModel, any>
-  subQuery: RelationSubQueryBuilderContract<RelatedModel>
+  __relationModel: RelatedModel
+  __relationInstance: InstanceType<RelatedModel>
+  __relationClient: HasManyClientContract<HasManyRelationContract<ParentModel, RelatedModel>, RelatedModel>
+  __relationBuilder: HasManyQueryBuilderContract<RelatedModel, any>
+  __relationSubQuery: RelationSubQueryBuilderContract<RelatedModel>
 }
 
 /**
@@ -209,14 +209,14 @@ export type BelongsTo<
   ParentModel extends LucidModel = LucidModel,
 > = InstanceType<RelatedModel> & {
   readonly __opaque_type: 'belongsTo'
-  model: RelatedModel
-  instance: InstanceType<RelatedModel>
-  client: BelongsToClientContract<
+  __relationModel: RelatedModel
+  __relationInstance: InstanceType<RelatedModel>
+  __relationClient: BelongsToClientContract<
     BelongsToRelationContract<ParentModel, RelatedModel>,
     RelatedModel
   >
-  builder: RelationQueryBuilderContract<RelatedModel, any>
-  subQuery: RelationSubQueryBuilderContract<RelatedModel>
+  __relationBuilder: RelationQueryBuilderContract<RelatedModel, any>
+  __relationSubQuery: RelationSubQueryBuilderContract<RelatedModel>
 }
 
 /**
@@ -227,14 +227,14 @@ export type ManyToMany<
   ParentModel extends LucidModel = LucidModel,
 > = InstanceType<RelatedModel>[] & {
   readonly __opaque_type: 'manyToMany'
-  model: RelatedModel
-  instance: InstanceType<RelatedModel>
-  client: ManyToManyClientContract<
+  __relationModel: RelatedModel
+  __relationInstance: InstanceType<RelatedModel>
+  __relationClient: ManyToManyClientContract<
     ManyToManyRelationContract<ParentModel, RelatedModel>,
     RelatedModel
   >
-  builder: ManyToManyQueryBuilderContract<RelatedModel, any>
-  subQuery: ManyToManySubQueryBuilderContract<RelatedModel>
+  __relationBuilder: ManyToManyQueryBuilderContract<RelatedModel, any>
+  __relationSubQuery: ManyToManySubQueryBuilderContract<RelatedModel>
 }
 
 /**
@@ -245,14 +245,14 @@ export type HasManyThrough<
   ParentModel extends LucidModel = LucidModel,
 > = InstanceType<RelatedModel>[] & {
   readonly __opaque_type: 'hasManyThrough'
-  model: RelatedModel
-  instance: InstanceType<RelatedModel>
-  client: HasManyThroughClientContract<
+  __relationModel: RelatedModel
+  __relationInstance: InstanceType<RelatedModel>
+  __relationClient: HasManyThroughClientContract<
     HasManyThroughRelationContract<ParentModel, RelatedModel>,
     RelatedModel
   >
-  builder: HasManyThroughQueryBuilderContract<RelatedModel, any>
-  subQuery: RelationSubQueryBuilderContract<RelatedModel>
+  __relationBuilder: HasManyThroughQueryBuilderContract<RelatedModel, any>
+  __relationSubQuery: RelationSubQueryBuilderContract<RelatedModel>
 }
 
 /**
@@ -998,7 +998,7 @@ export interface WithCount<Model extends LucidRow, Builder> {
   <
     Name extends ExtractModelRelations<Model>,
     RelatedBuilder = NonNullable<Model[Name]> extends ModelRelations<LucidModel, LucidModel>
-      ? NonNullable<Model[Name]>['subQuery']
+      ? NonNullable<Model[Name]>['__relationSubQuery']
       : never,
   >(
     relation: Name,
@@ -1013,7 +1013,7 @@ export interface WithAggregate<Model extends LucidRow, Builder> {
   <
     Name extends ExtractModelRelations<Model>,
     RelatedBuilder = NonNullable<Model[Name]> extends ModelRelations<LucidModel, LucidModel>
-      ? NonNullable<Model[Name]>['subQuery']
+      ? NonNullable<Model[Name]>['__relationSubQuery']
       : never,
   >(
     relation: Name,
@@ -1039,7 +1039,7 @@ export interface WhereHas<Model extends LucidRow, Builder> {
   <
     Name extends ExtractModelRelations<Model>,
     RelatedBuilder = NonNullable<Model[Name]> extends ModelRelations<LucidModel, LucidModel>
-      ? NonNullable<Model[Name]>['subQuery']
+      ? NonNullable<Model[Name]>['__relationSubQuery']
       : never,
   >(
     relation: Name,
@@ -1062,7 +1062,7 @@ export interface Preload<Model extends LucidRow, Builder> {
   <
     Name extends ExtractModelRelations<Model>,
     RelatedBuilder = NonNullable<Model[Name]> extends ModelRelations<LucidModel, LucidModel>
-      ? NonNullable<Model[Name]>['builder']
+      ? NonNullable<Model[Name]>['__relationBuilder']
       : never,
   >(
     relation: Name,

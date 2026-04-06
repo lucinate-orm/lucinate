@@ -693,7 +693,7 @@ export interface LucidRow {
     Self extends this,
     Name extends ExtractModelRelations<Self>,
     RelatedBuilder = NonNullable<Self[Name]> extends ModelRelations<LucidModel, LucidModel>
-      ? NonNullable<Self[Name]>['subQuery']
+      ? NonNullable<Self[Name]>['__relationSubQuery']
       : never,
   >(
     name: Name,
@@ -707,7 +707,7 @@ export interface LucidRow {
     Self extends this,
     Name extends ExtractModelRelations<Self>,
     RelatedBuilder = NonNullable<Self[Name]> extends ModelRelations<LucidModel, LucidModel>
-      ? NonNullable<Self[Name]>['subQuery']
+      ? NonNullable<Self[Name]>['__relationSubQuery']
       : never,
   >(
     name: Name,
@@ -768,7 +768,7 @@ export interface LucidRow {
   related<Name extends ExtractModelRelations<this>>(
     relation: Name
   ): NonNullable<this[Name]> extends ModelRelations<LucidModel, LucidModel>
-    ? NonNullable<this[Name]>['client']
+    ? NonNullable<this[Name]>['__relationClient']
     : never
 }
 
@@ -923,7 +923,7 @@ export interface LucidModel {
     this: Model,
     name: Name
   ): NonNullable<InstanceType<Model>[Name]> extends ModelRelations<LucidModel, LucidModel>
-    ? NonNullable<InstanceType<Model>[Name]>['client']['relation']
+    ? NonNullable<InstanceType<Model>[Name]>['__relationClient']['relation']
     : RelationshipsContract
   $getRelation<Model extends LucidModel>(this: Model, name: string): RelationshipsContract
 
