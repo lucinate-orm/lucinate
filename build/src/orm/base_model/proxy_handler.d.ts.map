@@ -1,0 +1,1 @@
+{"version":3,"file":"proxy_handler.d.ts","sourceRoot":"","sources":["../../../../src/orm/base_model/proxy_handler.ts"],"names":[],"mappings":"AAmBA;;GAEG;AACH,eAAO,MAAM,YAAY;gBACX,GAAG,OAAO,GAAG,YAAY,GAAG;gBAqC5B,GAAG,OAAO,GAAG,SAAS,GAAG,YAAY,GAAG;2BAoC7B,GAAG,OAAO,GAAG,SAAS,GAAG;CAajD,CAAA"}

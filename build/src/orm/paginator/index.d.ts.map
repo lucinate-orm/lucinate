@@ -1,0 +1,1 @@
+{"version":3,"file":"index.d.ts","sourceRoot":"","sources":["../../../../src/orm/paginator/index.ts"],"names":[],"mappings":"AASA,OAAO,EAAE,KAAK,sBAAsB,EAAE,KAAK,UAAU,EAAE,MAAM,sBAAsB,CAAA;AACnF,OAAO,EAAE,eAAe,EAAE,MAAM,8CAA8C,CAAA;AAE9E;;;GAGG;AACH,qBAAa,cAAe,SAAQ,eAAgB,YAAW,sBAAsB,CAAC,GAAG,CAAC;IACxF;;OAEG;IACH,SAAS,CAAC,UAAU,CAAC,EAAE,UAAU;;;;CAMlC"}

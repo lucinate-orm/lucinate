@@ -1,0 +1,1 @@
+{"version":3,"file":"types-health.d.ts","sourceRoot":"","sources":["../../../../src/shims/runtime/types-health.ts"],"names":[],"mappings":"AAAA;;GAEG;AACH,MAAM,MAAM,iBAAiB,GAAG;IAC9B,WAAW,CAAC,EAAE,MAAM,CAAA;IACpB,MAAM,EAAE;QACN,OAAO,EAAE,OAAO,CAAA;QAChB,OAAO,EAAE,MAAM,CAAA;KAChB,CAAA;IACD,QAAQ,CAAC,EAAE,MAAM,CAAC,MAAM,EAAE,OAAO,CAAC,CAAA;CACnC,CAAA"}
