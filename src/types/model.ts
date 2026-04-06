@@ -8,6 +8,7 @@
  */
 
 import { type DateTime } from 'luxon'
+import type { Knex } from 'knex'
 import type Hooks from '@poppinss/hooks'
 import {
   type TransactionFn,
@@ -548,6 +549,17 @@ export interface ModelQueryBuilderContract<Model extends LucidModel, Result = In
    * Implemented on `ModelQueryBuilder`; relation query builders inherit a no-op stub.
    */
   joinRelation(relationName: string, options?: { joinType?: 'inner' | 'left' }): this
+
+  /**
+   * SQL that would run for a select, including `before:fetch` hooks (soft deletes, etc.).
+   * Sync `toSQL()` does not run model hooks — it only applies `applyWhere()`.
+   */
+  toSQLForExecution(): Promise<Knex.Sql>
+
+  /**
+   * Same as {@link ModelQueryBuilderContract.toSQLForExecution} but returns the query string.
+   */
+  toQueryForExecution(): Promise<string>
 }
 
 /**

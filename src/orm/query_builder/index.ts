@@ -364,7 +364,17 @@ export class ModelQueryBuilder
     clonedQuery.sideloaded = Object.assign({}, this.sideloaded)
     clonedQuery.debug(this.debugQueries)
     clonedQuery.reporterData(this.customReporterData)
-    this.rowTransformerCallback && this.rowTransformer(this.rowTransformerCallback)
+    this.rowTransformerCallback && clonedQuery.rowTransformer(this.rowTransformerCallback)
+
+    clonedQuery.wrapResultsToModelInstances = this.wrapResultsToModelInstances
+    clonedQuery.isChildQuery = this.isChildQuery
+
+    /**
+     * Copy own symbols (addon macros, e.g. soft-delete mode) so clone matches the source builder.
+     */
+    for (const key of Object.getOwnPropertySymbols(this)) {
+      ;(clonedQuery as any)[key] = (this as any)[key]
+    }
 
     return clonedQuery as ModelQueryBuilderContract<LucidModel, ClonedResult>
   }
@@ -862,6 +872,39 @@ export class ModelQueryBuilder
   toSQL(): Knex.Sql {
     this.applyWhere()
     return this.knexQuery.toSQL()
+  }
+
+  /**
+   * Like `exec()` for select queries, runs `before:fetch` model hooks (soft deletes, etc.) on a
+   * **clone**, then returns SQL. Use this when you need the same SQL that would execute.
+   *
+   * Sync `toSQL()` / `toQuery()` only call `applyWhere()` and do **not** run model hooks.
+   */
+  async toSQLForExecution(): Promise<Knex.Sql> {
+    const isFetchCall =
+      this.wrapResultsToModelInstances && (this.knexQuery as any)['_method'] === 'select'
+
+    const query = this.clone() as ModelQueryBuilder
+    if (isFetchCall) {
+      await query.model.$hooks.runner('before:fetch').run(query)
+    }
+    query.applyWhere()
+    return query.knexQuery.toSQL()
+  }
+
+  /**
+   * String SQL for {@link ModelQueryBuilder.toSQLForExecution}.
+   */
+  async toQueryForExecution(): Promise<string> {
+    const isFetchCall =
+      this.wrapResultsToModelInstances && (this.knexQuery as any)['_method'] === 'select'
+
+    const query = this.clone() as ModelQueryBuilder
+    if (isFetchCall) {
+      await query.model.$hooks.runner('before:fetch').run(query)
+    }
+    query.applyWhere()
+    return query.knexQuery.toQuery()
   }
 
   /**
