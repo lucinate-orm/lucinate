@@ -536,6 +536,12 @@ export interface ModelQueryBuilderContract<Model extends LucidModel, Result = In
    * of model instances
    */
   pojo<T>(): ModelQueryBuilderContract<Model, T>
+
+  /**
+   * Filters addon: apply constraints from a plain object using `Model.$filter` (or `FilterCtor`).
+   * Implemented on `ModelQueryBuilder`; relation query builders inherit a no-op stub.
+   */
+  filter(input?: ModelObject, FilterCtor?: any): this
 }
 
 /**
@@ -1199,6 +1205,15 @@ export interface LucidModel {
   query<Model extends LucidModel, Result = InstanceType<Model>>(
     this: Model,
     options?: ModelAdapterOptions
+  ): ModelQueryBuilderContract<Model, Result>
+
+  /**
+   * Filters addon: `query().filter(input)` shortcut (implemented on `BaseModel`).
+   */
+  filter<Model extends LucidModel, Result = InstanceType<Model>>(
+    this: Model,
+    input?: ModelObject,
+    FilterCtor?: any
   ): ModelQueryBuilderContract<Model, Result>
 
   /**

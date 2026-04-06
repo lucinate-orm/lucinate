@@ -286,6 +286,15 @@ class BaseModelImpl implements LucidRow {
   }
 
   /**
+   * Filters addon: delegates to `query().filter`. When the filters addon macro is
+   * not loaded, this is a no-op chain on the builder.
+   */
+  static filter(input?: ModelObject, FilterCtor?: any): any {
+    this.boot()
+    return this.query().filter(input, FilterCtor)
+  }
+
+  /**
    * Returns the model query instance for the given model
    */
   static transaction<T>(

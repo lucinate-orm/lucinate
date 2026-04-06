@@ -865,6 +865,13 @@ export class ModelQueryBuilder
   }
 
   /**
+   * Filters addon: no-op stub; replaced by macro when the filters addon is loaded.
+   */
+  filter(_input?: ModelObject, _FilterCtor?: any): this {
+    return this
+  }
+
+  /**
    * Get rows back as a plain javascript object and not an array
    * of model instances
    */
