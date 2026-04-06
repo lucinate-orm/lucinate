@@ -917,7 +917,14 @@ export class ModelQueryBuilder
   /**
    * Join-relations addon: no-op stub; replaced by macro when the addon is loaded.
    */
-  joinRelation(_relationName: string, _options?: { joinType?: 'inner' | 'left' }): this {
+  joinRelation(_relationName: string, _options?: { joinType?: 'inner' | 'left'; selectRelated?: boolean }): this {
+    return this
+  }
+
+  /**
+   * Join-relations addon: no-op stub; replaced by macro when the addon is loaded.
+   */
+  leftJoinRelation(_relationName: string, _options?: { joinType?: 'inner' | 'left'; selectRelated?: boolean }): this {
     return this
   }
 

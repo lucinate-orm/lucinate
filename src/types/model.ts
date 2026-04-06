@@ -548,7 +548,19 @@ export interface ModelQueryBuilderContract<Model extends LucidModel, Result = In
    * Join relations addon: perform SQL join for `belongsTo` / `hasOne`.
    * Implemented on `ModelQueryBuilder`; relation query builders inherit a no-op stub.
    */
-  joinRelation(relationName: string, options?: { joinType?: 'inner' | 'left' }): this
+  joinRelation(
+    relationName: string,
+    options?: { joinType?: 'inner' | 'left'; selectRelated?: boolean }
+  ): this
+
+  /**
+   * Join relations addon: `LEFT JOIN` for `belongsTo` / `hasOne` (alias of `joinRelation` with `joinType: 'left'`).
+   * Implemented on `ModelQueryBuilder`; relation query builders inherit a no-op stub.
+   */
+  leftJoinRelation(
+    relationName: string,
+    options?: { joinType?: 'inner' | 'left'; selectRelated?: boolean }
+  ): this
 
   /**
    * SQL that would run for a select, including `before:fetch` hooks (soft deletes, etc.).
