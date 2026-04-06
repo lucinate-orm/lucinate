@@ -4,8 +4,6 @@ import { dirname, join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import string from '@poppinss/utils/string'
 import { resolveDefaultDatabaseConfigPath } from './default-config-path.mjs'
-import { resolveAppRootFromCandidates } from './resolve-app-root.mjs'
-import { resolveConfigPathFromEnv } from './config-path-from-env.mjs'
 
 /**
  * @param {string} pkgRoot lucinate package root
@@ -30,20 +28,14 @@ export async function loadUtilsIndex(pkgRoot) {
 }
 
 /**
- * --app-root; APP_ROOT; otherwise cwd then ./src and ./app if config/database.* exists
- * @param {{ appRoot?: string }} opts
+ * Project root for generators — always `process.cwd()` (run CLI from the app root).
  */
-export function resolveAppRoot(opts) {
-  const cwd = process.cwd()
-  if (opts.appRoot) return resolve(opts.appRoot)
-  if (process.env.APP_ROOT) return resolve(process.env.APP_ROOT)
-  return resolveAppRootFromCandidates(cwd)
+export function resolveAppRoot() {
+  return resolve(process.cwd())
 }
 
 /** Same resolution order as migrate.mjs / seed.mjs. */
 export function resolveConfigPathForGenerate(appRoot) {
-  const fromEnv = resolveConfigPathFromEnv()
-  if (fromEnv) return fromEnv
   const def = resolveDefaultDatabaseConfigPath(appRoot)
   if (def) return def
   return join(appRoot, 'database.config.json')

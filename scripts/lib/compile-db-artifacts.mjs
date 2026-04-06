@@ -4,15 +4,19 @@ import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 
 /**
- * If `tsconfig.db.json` exists (cwd or app-root), runs `tsc -p …` to emit
+ * If `tsconfig.db.json` exists (cwd or project root), runs `tsc -p …` to emit
  * `build/**` before Node loads migrations/seeders as `.js`.
  *
- * - Disable: `LUCINATE_DATABASE_SKIP_DB_BUILD=1`
+ * - Disable: pass `{ skipBuild: true }` or use CLI `--skip-build`
  * - Requires `typescript` in the project where `tsconfig.db.json` lives
  * - Uses the same runtime as the invoking script (`node` or `bun` via `process.execPath`)
+ *
+ * @param {string} cwd
+ * @param {string} appRoot
+ * @param {{ skipBuild?: boolean }} [options]
  */
-export function compileDbArtifactsIfNeeded(cwd, appRoot) {
-    if (process.env.LUCINATE_DATABASE_SKIP_DB_BUILD === "1") {
+export function compileDbArtifactsIfNeeded(cwd, appRoot, options = {}) {
+    if (options.skipBuild) {
         return;
     }
 

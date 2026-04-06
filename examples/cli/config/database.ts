@@ -7,7 +7,8 @@ export default defineConfig({
       client: 'sqlite3',
       useNullAsDefault: true,
       connection: {
-        filename: './examples/cli/demo.sqlite',
+        /** Resolved relative to `process.cwd()` — run migrate/seed from `examples/cli`. */
+        filename: './demo.sqlite',
       },
       migrations: {
         paths: ['../../build/examples/cli/database/migrations'],

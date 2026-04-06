@@ -77,7 +77,7 @@ test('bootDatabase: force recreates instance', async () => {
   assert.notStrictEqual(a, b)
 })
 
-test('bootDatabase: explicit appRoot loads config/database.json', async () => {
+test('bootDatabase: explicit appRoot and configPath loads JSON config', async () => {
   const tmp = mkdtempSync(join(tmpdir(), 'lucinate-boot-'))
   mkdirSync(join(tmp, 'config'), { recursive: true })
   writeFileSync(
@@ -93,17 +93,10 @@ test('bootDatabase: explicit appRoot loads config/database.json', async () => {
       },
     }),
   )
-  const prevRoot = process.env.APP_ROOT
-  process.env.APP_ROOT = '/nonexistent-lucinate-root-xyz'
   try {
-    const db = await bootDatabase({ appRoot: tmp })
+    const db = await bootDatabase({ appRoot: tmp, configPath: join(tmp, 'config', 'database.json') })
     assert.ok(db.connection())
   } finally {
-    if (prevRoot === undefined) {
-      delete process.env.APP_ROOT
-    } else {
-      process.env.APP_ROOT = prevRoot
-    }
     await resetBootDatabase()
     rmSync(tmp, { recursive: true, force: true })
   }

@@ -16,11 +16,11 @@
  * - Options (`BootDatabaseOptions`):
  *   - **`config`** — resolved `DatabaseConfig` object. Does not read a file. E.g.
  *     `await bootDatabase({ config: defineConfig({ connection: 'default', connections: { ... } }) })`
- *   - **`appRoot`** — app root (`config/`, `database/`, …). If omitted: `APP_ROOT` or candidates from `process.cwd()`.
+ *   - **`appRoot`** — app root (`config/`, `database/`, …). If omitted: **`process.cwd()`** (run from project root).
  *   - **`configPath`** — absolute or relative path to config (overrides default resolution).
  *   - **`logger`** / **`emitter`** — replace the default console logger and `EventEmitter`.
  *   - **`force`** — `true`: tear down the previous singleton, clear the default adapter, and create a new `Database` (useful in tests).
- * - Without explicit `config` or `configPath`, loads config by convention (`build/config/database.js`, `config/database.{js,json,ts}`, env `LUCINATE_CONFIG_PATH` / `LUCINATE_DATABASE_CONFIG`).
+ * - Without explicit `config` or `configPath`, loads config by convention: **`config/database.ts`** or compiled **`build/config/database.js`**.
  *
  * Equivalent to the demo below using `bootDatabase` (commented):
  *

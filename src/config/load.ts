@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
-import { isAbsolute, join, relative } from 'node:path'
+import { dirname, isAbsolute, join, relative, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import type { DatabaseConfig } from '../types/database.js'
 
@@ -11,54 +11,57 @@ export {
 } from './runtime-paths.js'
 
 /**
- * Order under `config/`: `database.js` and `database.json` before `database.ts` (useful when Node
- * loads only JS; `database.ts` is usually the source compiled to `build/config/database.js`).
+ * Convention: only `config/database.ts` at the app root (plus compiled `build/config/database.js`).
  */
-export function getDefaultDatabaseConfigFilenames(nodeEnv?: string): readonly string[] {
-  const prod = (nodeEnv ?? process.env.NODE_ENV) === 'production'
-  return prod
-    ? (['database.js', 'database.json', 'database.ts'] as const)
-    : (['database.js', 'database.json', 'database.ts'] as const)
+export function getDefaultDatabaseConfigFilenames(_nodeEnv?: string): readonly string[] {
+  return ['database.ts'] as const
+}
+
+function findPackageRoot(startDir: string): string | null {
+  let dir = resolve(startDir)
+  for (;;) {
+    if (existsSync(join(dir, 'package.json'))) {
+      return dir
+    }
+    const parent = dirname(dir)
+    if (parent === dir) {
+      return null
+    }
+    dir = parent
+  }
 }
 
 /**
- * Resolve path by convention: first `build/config/database.js` (e.g. from `config/database.ts`),
- * then if `config/database.ts` exists and repo-root `tsc` emits to `build/...` (cwd = package root),
- * use that JS; finally `APP_ROOT/config/database.{js,json,ts}`.
+ * Resolve path by convention: compiled output under `build/` (from the nearest package root
+ * or `cwd`), then `config/database.ts` when no emitted JS exists yet.
  */
 export function resolveDefaultDatabaseConfigPath(
   appRoot: string,
-  options?: { nodeEnv?: string }
+  _options?: { nodeEnv?: string }
 ): string | null {
-  const prod = (options?.nodeEnv ?? process.env.NODE_ENV) === 'production'
-
-  /**
-   * In development, prefer source config under appRoot/config to avoid
-   * loading stale compiled files from build/config.
-   */
-  if (!prod) {
-    for (const name of getDefaultDatabaseConfigFilenames(options?.nodeEnv)) {
-      const p = join(appRoot, 'config', name)
-      if (existsSync(p)) return p
-    }
-  }
+  const tsPath = join(appRoot, 'config', 'database.ts')
 
   const built = join(appRoot, 'build', 'config', 'database.js')
   if (existsSync(built)) return built
 
-  const tsConfigPath = join(appRoot, 'config', 'database.ts')
-  if (existsSync(tsConfigPath)) {
-    const rel = relative(process.cwd(), tsConfigPath)
-    if (rel && !rel.startsWith('..') && !isAbsolute(rel)) {
-      const compiled = join(process.cwd(), 'build', rel.replace(/\.ts$/, '.js'))
+  if (existsSync(tsPath)) {
+    const pkgRoot = findPackageRoot(appRoot)
+    if (pkgRoot) {
+      const rel = relative(pkgRoot, tsPath)
+      if (rel && !rel.startsWith('..') && !isAbsolute(rel)) {
+        const compiled = join(pkgRoot, 'build', rel.replace(/\.ts$/, '.js'))
+        if (existsSync(compiled)) return compiled
+      }
+    }
+    const relCwd = relative(process.cwd(), tsPath)
+    if (relCwd && !relCwd.startsWith('..') && !isAbsolute(relCwd)) {
+      const compiled = join(process.cwd(), 'build', relCwd.replace(/\.ts$/, '.js'))
       if (existsSync(compiled)) return compiled
     }
   }
 
-  for (const name of getDefaultDatabaseConfigFilenames(options?.nodeEnv)) {
-    const p = join(appRoot, 'config', name)
-    if (existsSync(p)) return p
-  }
+  if (existsSync(tsPath)) return tsPath
+
   return null
 }
 

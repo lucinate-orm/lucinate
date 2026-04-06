@@ -44,15 +44,19 @@ Commands:
   migrate:down [options]            Rollback (down)
   seed [options]                    Run seeders
 
-Common options: --app-root, --contents-from (generators), --config, --file / -f (seed), --help
+Run from the project root (where config/database.ts and database/ live).
+
+Common options: --skip-build (skip automatic tsc when tsconfig.db.json exists),
+  --contents-from (generators), --file / -f (seed), --help
 
 Examples:
-  lucinate make:migration create_posts_table --app-root .
+  cd my-app && lucinate make:migration create_posts_table
   lucinate make:migration create_posts_table -m -s
-  lucinate migrate --app-root examples/cli
-  lucinate seed --app-root examples/cli
+  cd my-app && lucinate migrate
+  cd my-app && lucinate seed
   lucinate seed -f users_seeder_seeder
   lucinate seed --file database/seeders/posts_seeder_seeder
+  lucinate migrate --skip-build
 
 Requires a built package (npm run build in lucinate) to import build/.
 `)

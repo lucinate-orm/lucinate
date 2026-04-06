@@ -7,12 +7,12 @@
  *   node scripts/generate.mjs model <Name> [--table users]
  *   node scripts/generate.mjs seeder <name>
  *
- * Options: --app-root, --dir, --import-from lucinate, --contents-from
+ * Options: --skip-build, --dir, --import-from lucinate, --contents-from
  */
 import { parseArgs } from 'node:util'
 import { existsSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
-import { join, resolve, isAbsolute } from 'node:path'
+import { join, relative, resolve, isAbsolute } from 'node:path'
 import { getPackageRoot } from './lib/resolve-pkg.mjs'
 import { compileDbArtifactsIfNeeded } from './lib/compile-db-artifacts.mjs'
 import { renderStubFile } from './lib/stub-render.mjs'
@@ -35,10 +35,19 @@ import {
 
 const pkgRoot = getPackageRoot(import.meta.url)
 
+/** Path relative to cwd for logs (POSIX-style slashes). Falls back to absolute if outside cwd. */
+function pathForLog(absPath) {
+  const rel = relative(process.cwd(), absPath)
+  if (rel && !rel.startsWith('..') && !isAbsolute(rel)) {
+    return rel.replace(/\\/g, '/')
+  }
+  return absPath
+}
+
 const { values, positionals } = parseArgs({
   args: process.argv.slice(2),
   options: {
-    'app-root': { type: 'string' },
+    'skip-build': { type: 'boolean', default: false },
     dir: { type: 'string' },
     'import-from': { type: 'string', default: 'lucinate' },
     /** Use this file's contents instead of the stub (migration, model, seeder). */
@@ -64,7 +73,7 @@ lucinate generate
   node scripts/generate.mjs model <ModelName> [--table table_name] [--dir path]
   node scripts/generate.mjs seeder <name> [--dir path]
 
-  --app-root        app root (default: cwd or APP_ROOT)
+  --skip-build      skip automatic tsc when tsconfig.db.json exists
   --dir             output directory (overrides config paths)
   --import-from     package to import from (default: lucinate)
   --contents-from   path to file whose contents replace the generated stub
@@ -79,9 +88,9 @@ Requires npm run build in the lucinate package.
 }
 
 const [command, rawName] = positionals
-const appRoot = resolveAppRoot({ appRoot: values['app-root'] })
+const appRoot = resolveAppRoot()
 const cwd = process.cwd()
-compileDbArtifactsIfNeeded(cwd, appRoot)
+compileDbArtifactsIfNeeded(cwd, appRoot, { skipBuild: values['skip-build'] })
 const importFrom = values['import-from']
 
 const { loadDatabaseConfig } = await loadBuildIndex(pkgRoot)
@@ -162,9 +171,9 @@ async function cmdMigration() {
 
   const wroteMigration = await writeGeneratedFile(outPath, body)
   if (wroteMigration) {
-    console.log(`Migration written: ${outPath}`)
+    console.log(`Migration written: ${pathForLog(outPath)}`)
   } else {
-    console.log(`[skip] already exists: ${outPath}`)
+    console.log(`[skip] already exists: ${pathForLog(outPath)}`)
   }
 
   /** Prevent `-m`/`-s` from reusing the same `--contents-from` as the migration. */
@@ -203,9 +212,9 @@ async function cmdModel(opts = {}) {
 
   const wrote = await writeGeneratedFile(outPath, body)
   if (wrote) {
-    console.log(`Model written: ${outPath}`)
+    console.log(`Model written: ${pathForLog(outPath)}`)
   } else {
-    console.log(`[skip] already exists: ${outPath}`)
+    console.log(`[skip] already exists: ${pathForLog(outPath)}`)
   }
 }
 
@@ -232,9 +241,9 @@ async function cmdSeeder(opts = {}) {
 
   const wrote = await writeGeneratedFile(outPath, body)
   if (wrote) {
-    console.log(`Seeder written: ${outPath}`)
+    console.log(`Seeder written: ${pathForLog(outPath)}`)
   } else {
-    console.log(`[skip] already exists: ${outPath}`)
+    console.log(`[skip] already exists: ${pathForLog(outPath)}`)
   }
 }
 

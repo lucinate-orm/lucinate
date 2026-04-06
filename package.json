@@ -43,9 +43,9 @@
     "test:run": "node --test test/boot_database.test.mjs && tsx --test test/extras_proxy.test.ts test/ids_generators.test.ts test/morph_relations.test.ts",
     "test": "npm run build && npm run test:run",
     "demo": "node --enable-source-maps build/examples/quick-query.js",
-    "migrate": "node scripts/migrate.mjs --app-root examples/cli",
-    "migrate:down": "node scripts/migrate.mjs --app-root examples/cli --down",
-    "seed": "node scripts/seed.mjs --app-root examples/cli",
+    "migrate": "cd examples/cli && node ../../scripts/migrate.mjs",
+    "migrate:down": "cd examples/cli && node ../../scripts/migrate.mjs --down",
+    "seed": "cd examples/cli && node ../../scripts/seed.mjs",
     "cli:example": "npm run build && npm run migrate && npm run seed",
     "generate": "node scripts/generate.mjs"
   },

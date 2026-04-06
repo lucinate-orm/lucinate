@@ -2,11 +2,10 @@
 /**
  * Run seeders.
  *
- * Default config: build/config/database.js (e.g. from config/database.ts at app root), then
- * APP_ROOT/config/database.{js,json,ts}
- * Env: APP_ROOT, LUCINATE_CONFIG_PATH (or LUCINATE_DATABASE_CONFIG)
+ * Config: `config/database.ts` at project root (`process.cwd()`), or compiled `build/config/database.js`.
+ * Run CLI from the project root. Use `--skip-build` to skip automatic `tsc -p tsconfig.db.json`.
  *
- * Filter seeders: repeatable --file <name> (-f), or LUCINATE_SEED_FILE (comma-separated list).
+ * Filter seeders: repeatable --file <name> (-f).
  * Name: basename (e.g. users_seeder_seeder) or logical path (e.g. database/seeders/users_seeder_seeder).
  */
 import { EventEmitter } from 'node:events'
@@ -18,10 +17,8 @@ import { getPackageRoot, entryIndexJs } from './lib/resolve-pkg.mjs'
 import { createConsoleLogger } from './lib/console-logger.mjs'
 import { createApplication } from './lib/create-app.mjs'
 import { resolveDefaultDatabaseConfigPath } from './lib/default-config-path.mjs'
-import { resolveAppRootFromCandidates } from './lib/resolve-app-root.mjs'
 import { prependConsumerNodeModulesPaths } from './lib/prepend-consumer-node-modules.mjs'
 import { compileDbArtifactsIfNeeded } from './lib/compile-db-artifacts.mjs'
-import { resolveConfigPathFromEnv } from './lib/config-path-from-env.mjs'
 
 const pkgRoot = getPackageRoot(import.meta.url)
 const indexJs = entryIndexJs(pkgRoot)
@@ -29,43 +26,30 @@ const indexJs = entryIndexJs(pkgRoot)
 const { values } = parseArgs({
   args: process.argv.slice(2),
   options: {
-    config: { type: 'string', short: 'c' },
-    'app-root': { type: 'string' },
     /** One or more seeders (repeat flag or comma-separated list). E.g. --file users_seeder_seeder */
     file: { type: 'string', short: 'f', multiple: true },
+    'skip-build': { type: 'boolean', default: false },
   },
   strict: true,
 })
 
 const cwd = process.cwd()
-
-function getAppRoot() {
-  if (values['app-root']) return resolve(values['app-root'])
-  if (process.env.APP_ROOT) return resolve(process.env.APP_ROOT)
-  return resolveAppRootFromCandidates(cwd)
-}
-
-const appRoot = getAppRoot()
+const appRoot = resolve(cwd)
 
 if (!existsSync(indexJs)) {
   console.error(`Missing build: ${indexJs}\nRun npm run build first`)
   process.exit(1)
 }
 
-compileDbArtifactsIfNeeded(cwd, appRoot)
+compileDbArtifactsIfNeeded(cwd, appRoot, { skipBuild: values['skip-build'] })
 
 const resolvedDefault = resolveDefaultDatabaseConfigPath(appRoot)
-const configPath = resolve(
-  values.config ||
-    resolveConfigPathFromEnv() ||
-    resolvedDefault ||
-    join(appRoot, 'build', 'config', 'database.js')
-)
+const configPath = resolve(resolvedDefault ?? join(appRoot, 'build', 'config', 'database.js'))
 
 if (!existsSync(configPath)) {
   console.error(`Config not found: ${configPath}`)
   console.error(
-    'Pass --config or LUCINATE_CONFIG_PATH (or LUCINATE_DATABASE_CONFIG), or add config/database.ts at the app root (compiled to build/config/database.js) or config/database.{js,json}.'
+    'Add config/database.ts at the project root (compiled to build/config/database.js) and run this command with cwd set to that root.'
   )
   process.exit(1)
 }
@@ -120,9 +104,7 @@ process.exit(0)
  * @param {string[] | undefined} fromCli
  */
 function collectSeedFilters(fromCli) {
-  const env = process.env.LUCINATE_SEED_FILE
-  const fromEnv = env ? env.split(',').map((s) => s.trim()).filter(Boolean) : []
-  const raw = [...(fromCli ?? []), ...fromEnv]
+  const raw = [...(fromCli ?? [])]
   const out = []
   for (const part of raw) {
     for (const piece of part.split(',')) {

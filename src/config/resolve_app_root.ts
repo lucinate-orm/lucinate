@@ -1,12 +1,12 @@
 /*
- * lucinate — app root resolution (parity with scripts/lib/resolve-app-root.mjs).
+ * lucinate — app root resolution (aligned with CLI: cwd is the project root).
  */
 import { existsSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { resolveDefaultDatabaseConfigPath } from './load.js'
 
 /**
- * Whether `appRoot` has a recognizable DB config marker.
+ * Whether `appRoot` has a recognizable DB config marker (`config/database.ts` or resolved build output).
  */
 export function hasDatabaseConfigMarker(appRoot: string): boolean {
   if (resolveDefaultDatabaseConfigPath(appRoot)) {
@@ -15,22 +15,12 @@ export function hasDatabaseConfigMarker(appRoot: string): boolean {
   if (existsSync(join(appRoot, 'config', 'database.ts'))) {
     return true
   }
-  if (existsSync(join(appRoot, 'src', 'config', 'database.ts'))) {
-    return true
-  }
   return false
 }
 
 /**
- * Pick the first base (`cwd`, `cwd/src`, `cwd/app`) where DB config exists; otherwise absolute `cwd`.
+ * Project root for DB resolution — always absolute `cwd` (run CLI from the app root).
  */
 export function resolveAppRootFromCandidates(cwd: string): string {
-  const bases = [cwd, join(cwd, 'src'), join(cwd, 'app')]
-  for (const base of bases) {
-    const abs = resolve(base)
-    if (hasDatabaseConfigMarker(abs)) {
-      return abs
-    }
-  }
   return resolve(cwd)
 }

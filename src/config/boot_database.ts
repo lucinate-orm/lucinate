@@ -11,13 +11,12 @@ import type { Logger } from '../shims/runtime/logger.js'
 import { createConsoleLogger } from './console_logger.js'
 import { setDefaultModelAdapter } from '../orm/default_model_adapter.js'
 import { loadDatabaseConfig, resolveDefaultDatabaseConfigPath } from './load.js'
-import { resolveAppRootFromCandidates } from './resolve_app_root.js'
 
 export type BootDatabaseOptions = {
-  /** App root (config/, database/, …). If omitted: `APP_ROOT` or candidates from `process.cwd()`. */
+  /** App root (`config/`, `database/`, …). If omitted: `process.cwd()` (run from project root). */
   appRoot?: string
   /**
-   * Overrides `process.env.NODE_ENV` for config path resolution (e.g. prefer `config/database.*` in dev).
+   * Overrides `process.env.NODE_ENV` for config path resolution (e.g. prefer `config/database.ts` in dev).
    * Use `"production"` when you want production-style resolution without setting env globally.
    */
   nodeEnv?: string
@@ -38,24 +37,12 @@ function resolveEffectiveAppRoot(options?: BootDatabaseOptions): string {
   if (options?.appRoot) {
     return resolve(options.appRoot)
   }
-  if (process.env.APP_ROOT) {
-    return resolve(process.env.APP_ROOT)
-  }
-  return resolveAppRootFromCandidates(process.cwd())
-}
-
-function resolveConfigPathFromEnv(): string | undefined {
-  const v = process.env.LUCINATE_CONFIG_PATH || process.env.LUCINATE_DATABASE_CONFIG
-  return v ? resolve(v) : undefined
+  return resolve(process.cwd())
 }
 
 function resolveConfigFilePath(appRoot: string, options?: BootDatabaseOptions): string {
   if (options?.configPath) {
     return resolve(options.configPath)
-  }
-  const fromEnv = resolveConfigPathFromEnv()
-  if (fromEnv) {
-    return fromEnv
   }
   const def = resolveDefaultDatabaseConfigPath(appRoot, { nodeEnv: options?.nodeEnv })
   if (def) {
@@ -78,7 +65,7 @@ async function createDatabaseInstance(options?: BootDatabaseOptions): Promise<Da
     if (!existsSync(configPath)) {
       throw new Error(
         `Config not found: ${configPath}\n` +
-          'Set options.configPath, LUCINATE_CONFIG_PATH (or LUCINATE_DATABASE_CONFIG), or add config/database.{ts,js,json} at the app root (compile to build/config/database.js when applicable).'
+          'Set options.configPath or add config/database.ts at the app root (compile to build/config/database.js when applicable).'
       )
     }
     config = await loadDatabaseConfig(configPath)
