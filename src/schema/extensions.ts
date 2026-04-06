@@ -16,38 +16,47 @@ export function registerSchemaExtensions() {
         return;
     }
 
-    tableBuilder.extend(
+    const extendIfMissing = (name: string, handler: (this: any, ...args: any[]) => any) => {
+        if (typeof tableBuilder.prototype?.[name] === "function") {
+            return;
+        }
+
+        try {
+            tableBuilder.extend(name, handler);
+        } catch (error: any) {
+            const message = String(error?.message || "");
+            if (!message.includes(`existing method ('${name}')`)) {
+                throw error;
+            }
+        }
+    };
+
+    extendIfMissing(
         "softDeletes",
         function (this: any, columnName: string = "deleted_at") {
             return this.timestamp(columnName).nullable();
         },
     );
 
-    tableBuilder.extend(
+    extendIfMissing(
         "ulid",
         function (this: any, columnName: string = "id", length: number = 26) {
             return this.string(columnName, length);
         },
     );
 
-    /**
-     * Knex already provides `uuid` for most dialects. Keep a fallback
-     * to preserve API even when unavailable.
-     */
-    if (typeof tableBuilder.prototype?.uuid !== "function") {
-        tableBuilder.extend(
-            "uuid",
-            function (
-                this: any,
-                columnName: string = "id",
-                length: number = 36,
-            ) {
-                return this.string(columnName, length);
-            },
-        );
-    }
+    extendIfMissing(
+        "uuid",
+        function (
+            this: any,
+            columnName: string = "id",
+            length: number = 36,
+        ) {
+            return this.string(columnName, length);
+        },
+    );
 
-    tableBuilder.extend(
+    extendIfMissing(
         "numericMorphs",
         function (this: any, name: string, indexName?: string, _after?: string) {
             this.string(`${name}_type`);
@@ -56,7 +65,7 @@ export function registerSchemaExtensions() {
         },
     );
 
-    tableBuilder.extend(
+    extendIfMissing(
         "nullableNumericMorphs",
         function (this: any, name: string, indexName?: string, _after?: string) {
             this.string(`${name}_type`).nullable();
@@ -65,7 +74,7 @@ export function registerSchemaExtensions() {
         },
     );
 
-    tableBuilder.extend(
+    extendIfMissing(
         "uuidMorphs",
         function (this: any, name: string, indexName?: string, _after?: string) {
             this.string(`${name}_type`);
@@ -74,7 +83,7 @@ export function registerSchemaExtensions() {
         },
     );
 
-    tableBuilder.extend(
+    extendIfMissing(
         "nullableUuidMorphs",
         function (this: any, name: string, indexName?: string, _after?: string) {
             this.string(`${name}_type`).nullable();
@@ -83,7 +92,7 @@ export function registerSchemaExtensions() {
         },
     );
 
-    tableBuilder.extend(
+    extendIfMissing(
         "ulidMorphs",
         function (this: any, name: string, indexName?: string, _after?: string) {
             this.string(`${name}_type`);
@@ -92,7 +101,7 @@ export function registerSchemaExtensions() {
         },
     );
 
-    tableBuilder.extend(
+    extendIfMissing(
         "nullableUlidMorphs",
         function (this: any, name: string, indexName?: string, _after?: string) {
             this.string(`${name}_type`).nullable();
@@ -101,7 +110,7 @@ export function registerSchemaExtensions() {
         },
     );
 
-    tableBuilder.extend(
+    extendIfMissing(
         "morphs",
         function (this: any, name: string, indexName?: string, after?: string) {
             if (defaultMorphKeyType === "uuid") {
@@ -114,7 +123,7 @@ export function registerSchemaExtensions() {
         },
     );
 
-    tableBuilder.extend(
+    extendIfMissing(
         "nullableMorphs",
         function (this: any, name: string, indexName?: string, after?: string) {
             if (defaultMorphKeyType === "uuid") {
